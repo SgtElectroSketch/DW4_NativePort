@@ -76,4 +76,27 @@ Do not bypass these checks with `git add -f`.
 | `docs/port/` | Native architecture, evidence rules, and implementation status |
 | `scripts/port/` | Native build-policy and support tooling |
 
-See [`ARCHITECTURE.md`](docs/port/ARCHITECTURE.md) for dependency boundaries.
+## Documentation
+
+### Native Port
+
+- [Architecture and dependency boundaries](docs/port/ARCHITECTURE.md)
+- [Current implementation status](docs/port/PORTING_STATUS.md)
+- [Behavior reconstruction rules](docs/port/BEHAVIOR_NOTES.md)
+- [Routine-to-native traceability](docs/port/routine-map.tsv)
+- [Generated asset contract](native/assets/schemas/README.md)
+
+### Development Notes
+
+- [Work to be done](docs/DevNotes/WorkToBeDone.md)
+- [Development diary](docs/DevNotes/DevDiaryNotes.md)
+- [AI use tracking](docs/DevNotes/AI_UseTracking.md)
+
+### Code Study Notes
+
+- [Code notes index](docs/DevNotes/CodeNotes/CodeNotes.md)
+- [Content: `AssetCatalog.hpp` and `AssetCatalog.cpp`](docs/DevNotes/CodeNotes/Content/AssetCatalog.md)
+- [Desktop: `main.cpp`](docs/DevNotes/CodeNotes/Desktop/main.md)
+- [Game: `Game.hpp` and `Game.cpp`](docs/DevNotes/CodeNotes/Game/Game.md)
+- [Tests: `GameTests.cpp`](docs/DevNotes/CodeNotes/Tests/GameTests.md)
+- [Tests: `AssetCatalogTests.cpp`](docs/DevNotes/CodeNotes/Tests/AssetCatalogTests.md)

@@ -1,0 +1,138 @@
+# Possible Modifications
+
+These are only to ever be implemented after the core game is behaviorally identical to the original version.
+
+The modifications should likely either go into a branch or a separate fork to avoid affecting the core game's behavior.
+
+## Accepted Ideas
+
+- Add an optional modern menu layout with clearer navigation for commands, inventory, equipment, spells, and status. - Yes
+- Add context-sensitive tooltips that explain the currently selected command, item, spell, statistic, or status effect. - Yes
+- Allow saving from any safe open-world location while retaining the original save rules as an option. - Yes
+- Add in-game display settings for resolution, integer scale, fullscreen mode, monitor selection, and window size. - Yes
+- Allow direct control of every party member in Chapter 5 instead of requiring AI tactics. - Yes
+- Add per-character tactics so each AI-controlled companion can follow a different strategy. - Yes
+- Provide selectable difficulty modes that adjust enemy behavior and resources rather than only inflating HP. - Yes
+- Add an encounter-rate setting with original, reduced, increased, and disabled options. - Yes
+- Add adjustable battle animation and message speeds without changing turn resolution. - Yes
+- Offer optional experience and gold multipliers for shorter repeat playthroughs. - Yes
+- Let wagon and reserve party members receive a configurable share of experience. - Yes
+- Expand personal inventory capacity while retaining an option for the original limits. - Yes
+- Allow stackable consumable items instead of requiring one inventory slot per copy. - Yes
+- Add a shared party inventory for items that do not need to remain character-specific. - Yes
+- Show equipment comparisons before buying, transferring, or equipping an item. - Yes
+- Allow newly purchased equipment to be equipped immediately, with the replaced item handled explicitly. - Yes
+- Allow buying and selling multiple copies of an item in one shop transaction. - Yes
+- Add a quest journal that records current story goals without revealing future events. - Yes
+- Add labeled world and dungeon maps that preserve exploration while making visited locations easier to identify. - Yes
+- Add optional fog-of-war or map completion tracking for towns, caves, towers, and the world map. - Yes
+- Add a dialogue history that records recently viewed conversations and choices. - Yes
+- Add an instant-text option in addition to the original message-speed settings. - Yes
+- Add optional dialogue auto-advance with separate timing for short and long messages. - Yes
+- Add scalable text, window, and menu sizes while preserving the original layout as a selectable theme. - Yes
+- Support complete keyboard and controller remapping, including multiple bindings for one action. - Yes
+- Add an optional one-handed control layout for menus, movement, and battle commands. - Yes
+- Add color-vision accessibility palettes for maps, status effects, menus, and battle indicators. - Yes
+- Add a monster bestiary populated through encounters, victories, drops, actions, and observed resistances. - Yes
+- Add searchable item, spell, equipment, and status-effect reference pages using discovered information. - Yes
+- Add optional achievements for chapter completion, exploration, bosses, collections, and challenge runs. - Yes
+- Add New Game Plus with configurable carryover for levels, items, gold, medals, or bestiary progress. - Yes
+- Expand the Endor tournament and Monster Arena with additional brackets, opponents, and rewards. - Yes
+- Add a post-game dungeon that combines existing mechanics in new layouts rather than merely raising statistics. - Yes
+- Add optional superbosses designed around underused spells, equipment, tactics, and status interactions. - Yes
+- Add side quests that revisit existing locations and characters without altering required story progression. - Yes
+- Expand companion dialogue during Chapters 1 through 5 to strengthen individual characterization. - Yes
+- Allow selected temporary party members to become permanent recruits after their original story role ends. - Yes
+- Add alternate ending scenes based on optional quests, party composition, or major choices. - Yes
+- Add predefined challenge modes such as ironman, no shops, no grinding, solo hero, or limited healing. - Yes
+- Add optional enemy level scaling with minimum and maximum bounds for open-ended exploration. - Yes
+- Add more flexible party formations and wagon swapping outside the situations allowed by the original game. - Yes
+- Add a widescreen presentation mode that reveals more of the map without stretching original pixel art. - Yes
+- Support selectable original and high-resolution visual packs without changing collision or gameplay coordinates. - Yes
+- Add QOL inputs for unused controller buttons or keyboard keys to trigger common actions or shortcuts. - Yes
+- Add a sprint button that accelerates field movement without changing encounter-step accounting unless configured. - Yes
+- Add separate movement-speed settings for walking, ships, wagons, and the balloon. - Yes
+- Add buffered turning at tile corners so held directions feel more responsive without enabling diagonal movement. - Yes
+- Add fast travel between previously visited towns, castles, and major landmarks after unlocking an appropriate service. - Yes, is this not a thing already with a return spell?
+- Allow players to place custom markers and short notes on world and dungeon maps.  - Yes
+- Track opened treasure chests and discovered hidden items separately for each map. - Yes
+- Add an optional danger meter that communicates the current area's encounter strength without revealing exact formations. - Yes
+- Add an option to suppress encounters that are far below the active party's level. - Yes
+- Add a visible-enemy mode that replaces random encounters with field entities while preserving formation data. - Yes
+- Add rotating autosave slots at map transitions, battle completion, and major story checkpoints. - Yes
+- Expand the number of adventure-log slots available to the player. - Yes
+- Show chapter, location, party, playtime, and last-save timestamp in each adventure-log preview. - Yes
+- Add a setting that remembers the previous battle command for each party member. - Yes
+- Automatically retarget an action when its selected target is defeated before the action resolves. - Yes
+- Add an optional turn-order preview based on the information available to the player. - Yes
+- Add optional enemy HP bars that become more accurate as the bestiary entry is completed. - Yes
+- Add separate optional boss HP bars with phase indicators for multi-stage encounters. - Yes
+- Display floating damage, healing, MP, and status numbers near affected combatants. - Yes
+- Reveal a monster's observed weaknesses and resistances after the party successfully discovers them in battle. - Yes
+- Rebalance underused spells, items, equipment, and tactics in an optional revised-balance ruleset. - Yes
+- Add new spells that fill missing offensive elements, support roles, and late-game progression gaps. - Yes
+- Add new weapons, armor, shields, helmets, and accessories with distinct tactical tradeoffs. - Yes
+- Add equipment set bonuses that reward themed combinations without making individual pieces mandatory. - Yes
+- Add weapon-specific combat skills learned through use or character progression. - Yes
+- Expand name length and character support while retaining an original-format compatibility option. - Yes
+- Add an on-screen day/night clock that reflects the game's actual world-time state. - Yes, this may already be a thing?
+- Add an inn or field command for waiting until a selected time of day where story logic allows it. - Yes
+- Add optional weather effects tied to regions, seasons, or story state without obscuring critical map information. - Yes
+- Add rare monster variants with alternate palettes, behavior, rewards, and bestiary entries. - Yes
+- Add an optional extended level cap with new progression tables designed for post-game content. - Yes
+- Add a Small Medal tracker that records discovered medals and gives non-spoiler hints for remaining regions. - Yes
+- Restore or repurpose verified unused monsters, items, text, or graphics as clearly labeled optional content. - Yes
+- Add a completion dashboard for chapters, maps, treasure, monsters, medals, quests, and optional bosses. - Yes
+
+## New Ideas to Review
+
+- Add separate volume controls for music, sound effects, menu sounds, and ambient audio.
+- Add a reduced-flashing mode for spells, critical hits, transitions, and other rapid brightness changes.
+- Add an option to disable or reduce screen shake independently from battle animation speed.
+- Add high-contrast cursor, selection-border, and active-target styles for menus and battles.
+- Add optional controller rumble for damage, critical hits, doors, vehicles, and major events.
+- Add visual indicators for important sound cues so gameplay information is not audio-only.
+- Pause automatically when the window loses focus, with a setting to continue when desired.
+- Pause and notify the player when the active controller disconnects during play.
+- Add multiple UI themes based on different chapters, kingdoms, and original window styles.
+- Add optional character portraits beside dialogue without changing the underlying script flow.
+- Add optional animated battle backgrounds while retaining the original static presentation mode.
+- Add smooth visual interpolation between tiles while preserving tile-based movement and collision rules.
+- Add higher-frame-count walking and battle animations as an optional visual mode.
+- Add environmental ambience for towns, caves, forests, oceans, towers, and weather conditions.
+- Add an unlockable music player containing tracks the player has encountered during the adventure.
+- Add a cutscene theater for replaying completed chapter introductions, major events, and the ending.
+- Add a photo mode that pauses presentation, hides the UI, and captures screenshots without changing game state.
+- Track playtime separately for each chapter, battle, menu, and exploration activity.
+- Add lifetime statistics for battles won, escapes, steps, damage, healing, purchases, and casino results.
+- Add inventory sorting by type, name, value, usability, equipment slot, and acquisition order.
+- Allow favorite or protected items to be pinned and excluded from discard or bulk-sale actions.
+- Add a shop buyback list for recently sold items, with rules preventing economy exploits.
+- Expand the item vault with sorting, filtering, category tabs, and capacity information.
+- Add a quick-heal command that proposes an efficient combination of known spells and available items.
+- Show a recovery summary after inn stays, healing services, revival, and curse removal.
+- Add named equipment loadouts that can be previewed and applied to one character.
+- Add party presets containing active members, formation, tactics, and equipment loadout references.
+- Add a favorites bar for frequently used field spells and consumable items.
+- Make confirmation prompts configurable for discarding, selling rare items, overwriting saves, and irreversible choices.
+- Allow inventory rearrangements to be undone until the player closes the current menu.
+- Add daily schedules for selected NPCs so their locations and activities change with world time.
+- Add new NPC dialogue after major bosses, recruitments, chapter transitions, and world-state changes.
+- Add a lore codex populated by discovered people, kingdoms, legends, monsters, and historical events.
+- Add optional bounty hunts built around specific monsters, regions, conditions, and escalating rewards.
+- Add a dream arena for rematching defeated bosses without altering story flags or consuming inventory.
+- Add a training room for testing damage, healing, status effects, equipment, and party configurations.
+- Add cooperative combination attacks unlocked by specific party relationships and progression milestones.
+- Add new defensive commands for guarding allies, intercepting attacks, or preparing counterattacks.
+- Add front-row and back-row positioning with explicit physical, ranged, and spell tradeoffs.
+- Add an optional dual-wield system with weapon restrictions, accuracy penalties, and character-specific rules.
+- Add an accessory equipment slot for utility effects that do not compete with armor or weapons.
+- Add character-specific passive traits that reinforce existing identities without replacing spells or equipment.
+- Add weapon and spell mastery bonuses earned through use, with visible progress and bounded power growth.
+- Add optional new recruitable characters with complete dialogue, progression, equipment, and ending outcomes.
+- Add a monster-companion system with recruitment conditions, growth rules, and party-size limitations.
+- Add a town restoration project that changes services, NPCs, visuals, and rewards as the player contributes resources.
+- Add optional islands, sea encounters, shipwrecks, and coastal locations for expanded ocean exploration.
+- Add alternate dungeon puzzles or layouts that become available after the original version is cleared.
+- Add a supported custom-campaign format for original maps, dialogue, encounters, events, and progression rules.
+- Add isolated mod profiles so custom content, balance changes, and saves do not contaminate the fidelity installation.

@@ -1,3 +1,5 @@
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 # AssetCatalog.hpp and AssetCatalog.cpp
 
 **Files:**
@@ -331,3 +333,5 @@ const AssetSummary& AssetCatalog::summary() const noexcept
 - The trailing `const` prevents mutation of the catalog through these methods.
 - `noexcept` accurately documents that returning an existing reference cannot fail.
 - Callers must not retain either reference after the catalog is destroyed.
+
+<!-- END AI-GENERATED CONTENT -->

@@ -4,6 +4,8 @@
 
 This is the entrypoint into the project.
 
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 ## High-Level Control Flow
 
 ```text
@@ -17,6 +19,8 @@ main
              -> clear and present the current frame
     -> report an error and return failure if an exception escapes
 ```
+
+<!-- END AI-GENERATED CONTENT -->
 
 ## SDL Entry-Point Configuration
 
@@ -35,9 +39,13 @@ OpenGL is a cross-platform graphics API that allows for the rendering of 2D and 
 
 Direct3D is a graphics API developed by Microsoft for rendering 3D graphics in applications where performance is important, such as games. It provides a set of functions to interact with the GPU, similar to OpenGL, but is specific to the Windows platform. In the context of SDL, Direct3D can be used as an alternative to OpenGL for creating and managing graphics contexts within SDL windows.
 
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 **Important distinction:** this file uses SDL's renderer API; it does not directly call OpenGL or Direct3D. SDL chooses
 and manages an available rendering backend. OpenGL and Direct3D are useful background for understanding what may exist
 under SDL, but they are not direct dependencies of this source file.
+
+<!-- END AI-GENERATED CONTENT -->
 
 ## Includes and Dependencies
 
@@ -72,8 +80,12 @@ under SDL, but they are not direct dependencies of this source file.
 namespace { // Anonymous namespace to limit the scope of the following definitions to this translation unit.
 ```
 
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 An anonymous namespace keeps its declarations private to this `.cpp` translation unit. Other source files cannot name
 `SdlContext`, `asset_root_from`, `read_input`, or `run`, even though some members inside those definitions are public.
+
+<!-- END AI-GENERATED CONTENT -->
 
 ## SDL Lifetime: `SdlContext`
 
@@ -96,6 +108,8 @@ public: // We make it public so that instances of SdlContext can be created and 
     SdlContext& operator=(const SdlContext&) = delete;
 };
 ```
+
+<!-- BEGIN AI-GENERATED CONTENT -->
 
 **Scope clarification:** `public` makes the constructor and destructor accessible to code that can see the class. It
 does not make the class visible outside this source file; the anonymous namespace controls that. `final` prevents
@@ -452,3 +466,5 @@ Questions to answer while studying this block:
 5. Stack unwinding destroys every fully constructed local in `run` before control reaches the catch block in `main`.
     Depending on where failure occurred, this includes the game, renderer, window, SDL context, and catalog. An object
     whose own constructor threw was never fully constructed and does not have its destructor called.
+
+<!-- END AI-GENERATED CONTENT -->

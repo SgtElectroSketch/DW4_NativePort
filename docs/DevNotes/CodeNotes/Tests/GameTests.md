@@ -1,3 +1,5 @@
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 # GameTests.cpp
 
 **Source:** `tests\src\unit\GameTests.cpp`
@@ -58,3 +60,5 @@ TEST_CASE("game advances exactly one deterministic frame per tick")
     related failures in one execution.
 - This test covers initial state, one tick, positive bit lookup, and negative bit lookup. It does not yet cover multiple
     simultaneous buttons, many ticks, frame-counter limits, transition input, or any real gameplay rule.
+
+<!-- END AI-GENERATED CONTENT -->

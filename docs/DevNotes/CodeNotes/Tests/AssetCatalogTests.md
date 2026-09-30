@@ -1,3 +1,5 @@
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 # AssetCatalogTests.cpp
 
 **Source:** `tests\src\integration\AssetCatalogTests.cpp`
@@ -208,3 +210,5 @@ TEST_CASE("asset catalog rejects incomplete extraction output")
 - This proves incomplete extraction does not silently create an empty catalog.
 - It does not yet test malformed JSON, a missing field, a field with the wrong type, failures in later families, path
     normalization, or the exact diagnostic text. Those are appropriate additions as the content contract grows.
+
+<!-- END AI-GENERATED CONTENT -->

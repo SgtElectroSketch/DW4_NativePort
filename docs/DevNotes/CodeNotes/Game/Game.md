@@ -1,3 +1,5 @@
+<!-- BEGIN AI-GENERATED CONTENT -->
+
 # Game.hpp and Game.cpp
 
 **Files:**
@@ -258,3 +260,5 @@ const FrameState& Game::frame() const noexcept
 - The caller must not keep this reference beyond the lifetime of its `Game` object.
 - This accessor is useful for rendering and tests, but later architecture may expose narrower snapshots or render data
     rather than granting every consumer access to all game state.
+
+<!-- END AI-GENERATED CONTENT -->

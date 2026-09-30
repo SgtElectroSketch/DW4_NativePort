@@ -1,0 +1,3 @@
+NativeSymbol	ReferenceRoutine	ReferenceEvidence	Status	Notes
+dw4::game::Game::tick	None	Native timing contract	Infrastructure	Advances one native simulation frame; no original gameplay behavior is claimed yet.
+dw4::content::AssetCatalog::load	Asset extractor stage contracts	reference/tools/AssetExtract/extract_assets.py	Implemented	Checks each required top-level generated JSON catalog without loading or executing original code.

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(VCInstallDir)vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" />
+  <Target Name="CheckNativeBoundary" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(DW4RepositoryRoot)scripts\port\check-native-boundary.ps1&quot; -RepositoryRoot &quot;$(DW4RepositoryRoot).&quot;" />
+  </Target>
+</Project>

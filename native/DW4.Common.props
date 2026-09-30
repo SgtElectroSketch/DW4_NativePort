@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <DW4RepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</DW4RepositoryRoot>
+    <OutDir>$(DW4RepositoryRoot)build\$(Configuration)\</OutDir>
+    <IntDir>$(DW4RepositoryRoot)build\$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgManifestRoot>$(DW4RepositoryRoot)</VcpkgManifestRoot>
+    <VcpkgTriplet>x64-windows</VcpkgTriplet>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCInstallDir)vcpkg\scripts\buildsystems\msbuild\vcpkg.props" />
+</Project>

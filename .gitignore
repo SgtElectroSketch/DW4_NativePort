@@ -8,16 +8,62 @@
 # Copyright boundary: extracted assets and supplied reference captures.
 /Resources/
 /assets/
-/assets/extracted/
-/work/
-/tools/fceux/
-/tools/GhidraNes/
-/tools/da65/
-/analysis/ghidra-shards/
+/reference/Resources/
+/reference/assets/
+/reference/work/
+/reference/tools/fceux/
+/reference/tools/GhidraNes/
+/reference/tools/da65/
+/reference/analysis/ghidra-shards/
+/native/assets/generated/
+/native/assets/extracted/
+/native/assets/runtime/
+/native/assets/package/
+/native/assets/packaged/
+**/assets/generated/
+**/assets/extracted/
+**/assets/runtime/
+**/assets/package/
+**/assets/packaged/
+
+# Copyright boundary: rendered images, audio captures, and package copies.
+*.[pP][nN][gG]
+*.[jJ][pP][gG]
+*.[jJ][pP][eE][gG]
+*.[gG][iI][fF]
+*.[bB][mM][pP]
+*.[wW][eE][bB][pP]
+*.[wW][aA][vV]
+*.[vV][gG][mM]
+*.[oO][gG][gG]
+*.[mM][pP]3
+*.[fF][lL][aA][cC]
+*.[mM][iI][dD]
+*.[mM][iI][dD][iI]
+/dist/
+/package/
+/staging/
+
+# Authored documentation screenshots are intentionally tracked.
+!/docs/DevNotes/Images/
+/docs/DevNotes/Images/**
+!/docs/DevNotes/Images/**/
+!/docs/DevNotes/Images/*.[pP][nN][gG]
+!/docs/DevNotes/Images/**/*.[pP][nN][gG]
+!/docs/DevNotes/Images/*.[jJ][pP][gG]
+!/docs/DevNotes/Images/**/*.[jJ][pP][gG]
+!/docs/DevNotes/Images/*.[jJ][pP][eE][gG]
+!/docs/DevNotes/Images/**/*.[jJ][pP][eE][gG]
+!/docs/DevNotes/Images/*.[gG][iI][fF]
+!/docs/DevNotes/Images/**/*.[gG][iI][fF]
+!/docs/DevNotes/Images/*.[bB][mM][pP]
+!/docs/DevNotes/Images/**/*.[bB][mM][pP]
+!/docs/DevNotes/Images/*.[wW][eE][bB][pP]
+!/docs/DevNotes/Images/**/*.[wW][eE][bB][pP]
 
 # Generated analysis artifacts that are not durable project evidence.
-/analysis/*.log
-/analysis/*.png
+/reference/analysis/*.log
+/reference/analysis/*.png
 
 # ROM-hacking patches and emulator-generated data.
 *.[iI][pP][sS]
@@ -40,8 +86,10 @@
 
 # Visual Studio, MSBuild, and .NET outputs.
 /build/
+/reference/build/
+/vcpkg_installed/
 /.vs/
-/DragonWarrior4/
+/reference/DragonWarrior4/
 /x64/
 **/bin/
 **/obj/

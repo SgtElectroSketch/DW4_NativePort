@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{542D6E83-A4C5-4499-A8CB-83F9B8826F57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{2559DF2D-A2C4-4EAF-A239-39D5ECA402D7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\dw4">
+      <UniqueIdentifier>{416FC586-7A16-4680-9184-EAF4EC1E69D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\dw4\content">
+      <UniqueIdentifier>{CBB93669-D7C8-49BD-8A09-99D8B412A08A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\AssetCatalog.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\dw4\content\AssetCatalog.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

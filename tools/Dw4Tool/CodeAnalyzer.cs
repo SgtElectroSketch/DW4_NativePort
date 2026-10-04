@@ -22,6 +22,17 @@ internal sealed record DecodedInstruction(int Bank, int Address, Opcode Opcode, 
     };
 }
 
+// The facts a following walk held on arrival at an instruction. Branch pruning depends on both, so an
+// instruction counts as explored only for arrivals whose facts these cover; null is the widest value.
+// Exploration also depends on the walk's window: a bounded walk stops at its end and bounds the targets
+// inside it, so facts are kept per window and only an unbounded walk covers every other arrival.
+internal readonly record struct PathFacts(bool? ZeroFlag, string? PreviousBranch)
+{
+    public PathFacts Join(PathFacts other) => new(
+        ZeroFlag == other.ZeroFlag ? ZeroFlag : null,
+        PreviousBranch == other.PreviousBranch ? PreviousBranch : null);
+}
+
 internal sealed class BankAnalysis
 {
     public SortedDictionary<int, DecodedInstruction> Instructions { get; } = [];
@@ -30,7 +41,7 @@ internal sealed class BankAnalysis
     public List<string> Warnings { get; } = [];
     public SortedSet<int> ContradictedSupplementarySeeds { get; } = [];
     public SortedSet<int> RejectedSupplementaryBlocks { get; } = [];
-    public HashSet<int> FollowedOffsets { get; } = [];
+    public Dictionary<(int Offset, int WindowStart, int WindowEnd), PathFacts> FollowedFacts { get; } = [];
 }
 
 internal static class CodeAnalyzer
@@ -67,8 +78,9 @@ internal static class CodeAnalyzer
 
         Queue<(int Bank, int Address, int? EndExclusive, bool FollowTargets)> pending = new();
         // A following walk explores successors that a non-following or bounded visit of the
-        // same address does not, so each visit mode is queued independently.
-        HashSet<(int Bank, int Address, bool FollowTargets, bool Bounded)> queued = [];
+        // same address does not, and two windows from one address end in different places, so
+        // each visit mode and each window end is queued independently.
+        HashSet<(int Bank, int Address, bool FollowTargets, int EndExclusive)> queued = [];
         List<Action>? journal = null;
         int journaledWarnings = 0;
         bool[][] declaredDataBytes = Enumerable.Range(0, 32)
@@ -172,7 +184,7 @@ internal static class CodeAnalyzer
                 journal?.Add(() => analyses[bank].LabelAddresses.Remove(address));
             }
 
-            (int, int, bool, bool) key = (bank, address, followTargets, endExclusive is not null);
+            (int, int, bool, int) key = (bank, address, followTargets, endExclusive ?? 0);
             if (!queued.Add(key))
             {
                 return;
@@ -227,7 +239,7 @@ internal static class CodeAnalyzer
             int address = startAddress;
             bool? zeroFlag = null;
             string? previousBranch = null;
-            int? lastFollowedOffset = null;
+            (int Start, int End) window = endExclusive is int windowEnd ? (startAddress, windowEnd) : (0, 0);
             while (AddressMapsToBank(bank, address) && (endExclusive is null || address < endExclusive))
             {
                 int offset = address - CpuBase(bank);
@@ -239,10 +251,37 @@ internal static class CodeAnalyzer
                 // An instruction decoded only by a non-following observation (a single executed
                 // runtime instruction) has unexplored successors, so a following path walks
                 // through it instead of stopping.
-                if (analysis.Instructions.TryGetValue(offset, out DecodedInstruction? existing) &&
-                    (!followTargets || analysis.FollowedOffsets.Contains(offset)))
+                if (analysis.Instructions.TryGetValue(offset, out DecodedInstruction? existing))
                 {
-                    return;
+                    if (!followTargets)
+                    {
+                        return;
+                    }
+
+                    // An earlier walk that arrived with narrower facts may have pruned a branch
+                    // edge this arrival can take, and an earlier bounded walk stopped at its own
+                    // window end, so the instruction is walked again unless an unbounded walk or
+                    // a walk of this same window already covered these facts. Facts only widen,
+                    // so every instruction is revisited a bounded number of times and
+                    // reachability does not depend on seed order.
+                    PathFacts arrival = new(zeroFlag, previousBranch);
+                    if (analysis.FollowedFacts.TryGetValue((offset, 0, 0), out PathFacts unbounded) &&
+                        unbounded.Join(arrival) == unbounded)
+                    {
+                        return;
+                    }
+
+                    if (analysis.FollowedFacts.TryGetValue((offset, window.Start, window.End), out PathFacts explored))
+                    {
+                        PathFacts widened = explored.Join(arrival);
+                        if (widened == explored)
+                        {
+                            return;
+                        }
+
+                        zeroFlag = widened.ZeroFlag;
+                        previousBranch = widened.PreviousBranch;
+                    }
                 }
 
                 DecodedInstruction instruction;
@@ -294,18 +333,30 @@ internal static class CodeAnalyzer
                     }
                 }
 
-                if (followTargets && analysis.FollowedOffsets.Add(offset))
+                if (followTargets)
                 {
-                    int followed = offset;
-                    journal?.Add(() => analysis.FollowedOffsets.Remove(followed));
-                    lastFollowedOffset = offset;
+                    (int, int, int) followed = (offset, window.Start, window.End);
+                    PathFacts facts = new(zeroFlag, previousBranch);
+                    bool revisited = analysis.FollowedFacts.TryGetValue(followed, out PathFacts previousFacts);
+                    analysis.FollowedFacts[followed] = facts;
+                    journal?.Add(() =>
+                    {
+                        if (revisited)
+                        {
+                            analysis.FollowedFacts[followed] = previousFacts;
+                        }
+                        else
+                        {
+                            analysis.FollowedFacts.Remove(followed);
+                        }
+                    });
                 }
 
                 // Both fixed banks share the same IRQ/BRK dispatcher, so a fixed-bank BRK
                 // consumes its inline operands exactly like a switchable-bank BRK.
                 if (opcode.Mnemonic == "brk")
                 {
-                    int operandCount = BrkOperandCount(prg.Span, bank, address, abi);
+                    int operandCount = InlineOperandCount(prg.Span, instruction, abi);
                     ClaimInlineOperands(bank, offset + 1, operandCount);
 
                     address += 1 + operandCount;
@@ -365,10 +416,7 @@ internal static class CodeAnalyzer
                     }
                 }
 
-                int inlineCallOperandCount = instruction.Opcode.IsCall && instruction.Target is int callTarget &&
-                    ResolveTargetBank(bank, callTarget) is int callBank
-                        ? abi.JsrInlineOperandCount(callBank, callTarget)
-                        : 0;
+                int inlineCallOperandCount = InlineOperandCount(prg.Span, instruction, abi);
                 if (inlineCallOperandCount > 0)
                 {
                     ClaimInlineOperands(bank, offset + opcode.Size, inlineCallOperandCount);
@@ -388,16 +436,32 @@ internal static class CodeAnalyzer
                 previousBranch = opcode.IsBranch ? opcode.Mnemonic : null;
                 address += opcode.Size;
             }
-
-            // The loop ended at an observation window's bound, so the last instruction's
-            // fallthrough was never explored; leave it open for a later unbounded walk.
-            if (lastFollowedOffset is int unexplored && analysis.FollowedOffsets.Remove(unexplored))
-            {
-                journal?.Add(() => analysis.FollowedOffsets.Add(unexplored));
-            }
         }
 
     }
+
+    // Bytes following a BRK or JSR that the callee's ABI consumes as inline operands. They are never
+    // fetched as opcodes, so every walk over decoded code must step past them.
+    public static int InlineOperandCount(ReadOnlySpan<byte> prg, DecodedInstruction instruction, InlineOperandAbi abi)
+    {
+        if (instruction.Opcode.Mnemonic == "brk")
+        {
+            return BrkOperandCount(prg, instruction.Bank, instruction.Address, abi);
+        }
+
+        return instruction.Opcode.IsCall && instruction.Target is int target &&
+            ResolveTargetBank(instruction.Bank, target) is int targetBank
+                ? abi.JsrInlineOperandCount(targetBank, target)
+                : 0;
+    }
+
+    // Where execution continues in the same routine body after this instruction: the next opcode, or
+    // the byte after the inline operands once a BRK service or inline-operand call returns. Null when
+    // the instruction ends its path (RTS, RTI, JMP).
+    public static int? ResumeAddress(ReadOnlySpan<byte> prg, DecodedInstruction instruction, InlineOperandAbi abi) =>
+        instruction.Opcode.StopsFlow && instruction.Opcode.Mnemonic != "brk"
+            ? null
+            : instruction.Address + instruction.Opcode.Size + InlineOperandCount(prg, instruction, abi);
 
     private static bool IsComplementaryBranch(string? previous, string current) => (previous, current) switch
     {
@@ -433,6 +497,53 @@ internal static class CodeAnalyzer
             instruction.Target is >= 0x0800 and < 0x6000
                 ? $"{instruction.Opcode.Mnemonic} ${instruction.Target:X4} targets hardware or unmapped address space"
                 : null;
+    }
+
+    // Evidence seeds are facts, not a schedule: walking them in the opposite order must decode the
+    // same instructions, inline operands, labels, and warnings. Supplementary blocks keep their order
+    // because each is accepted or rolled back against what the blocks before it established.
+    public static void ValidateSeedOrderIndependence(
+        ReadOnlyMemory<byte> prg,
+        IReadOnlyList<CodeSeed> seeds,
+        IReadOnlyList<CodeExclusion> exclusions,
+        InlineOperandAbi abi,
+        IReadOnlyList<CodeExclusion> declaredData,
+        IReadOnlyDictionary<int, BankAnalysis> analyses)
+    {
+        List<CodeSeed> reordered = seeds.Where(seed => !seed.Supplementary).Reverse().ToList();
+        reordered.AddRange(seeds.Where(seed => seed.Supplementary));
+        Dictionary<int, BankAnalysis> reversed = Analyze(prg, reordered, exclusions, abi, declaredData);
+        List<string> errors = [];
+        foreach ((int bank, BankAnalysis analysis) in analyses)
+        {
+            BankAnalysis other = reversed[bank];
+            int cpuBase = CpuBase(bank);
+            Compare("instruction", analysis.Instructions.Keys, other.Instructions.Keys);
+            Compare("inline operand", analysis.InlineDataOffsets, other.InlineDataOffsets);
+            Compare("label", analysis.LabelAddresses.Select(address => address - cpuBase),
+                other.LabelAddresses.Select(address => address - cpuBase));
+            if (!analysis.Warnings.Order(StringComparer.Ordinal).SequenceEqual(other.Warnings.Order(StringComparer.Ordinal)))
+            {
+                errors.Add($"bank ${bank:X2} warnings differ");
+            }
+
+            void Compare(string kind, IEnumerable<int> forward, IEnumerable<int> backward)
+            {
+                HashSet<int> difference = forward.ToHashSet();
+                difference.SymmetricExceptWith(backward);
+                if (difference.Count != 0)
+                {
+                    errors.Add($"bank ${bank:X2} {kind} sets differ at " +
+                        string.Join(", ", difference.Order().Take(8).Select(offset => $"${cpuBase + offset:X4}")));
+                }
+            }
+        }
+
+        if (errors.Count != 0)
+        {
+            throw new InvalidDataException(
+                $"analysis depends on evidence seed order ({errors.Count}): {string.Join("; ", errors.Take(20))}");
+        }
     }
 
     public static void ValidateGuardedFlowRecovery(
@@ -603,7 +714,7 @@ internal static class CodeAnalyzer
         return address >= cpuBase && address < cpuBase + BankSize;
     }
 
-    private static int? ResolveTargetBank(int currentBank, int target)
+    public static int? ResolveTargetBank(int currentBank, int target)
     {
         if (target is >= 0xC000 and <= 0xFFFF)
         {

@@ -485,7 +485,7 @@
 10	8BEE	LoadBattleClassCodeMaskedToSixBits	Function	Loads a class-table byte, masks it to six bits, and stores it in $6E0F
 10	8C04	LoadBattleClassAdjustmentByte	Function	Normalizes the class index and returns its byte from table $9DE0
 10	8C18	TestPartyRecordFieldMaskByInlineOffset	Function	Consumes an inline field offset and tests that selected-party-record byte against class mask tables
-10	8C58	ReturnCarryIfAccumulatorNonzero	Function	Returns carry set when A is nonzero and carry clear when A is zero
+10	8C58	ReturnCarryWhenIncomingZeroFlagClear	Function	Returns carry set when the caller's zero flag is clear and carry clear when it is set, without reading A; all seven callers enter directly after AND, so Z reflects their masked A
 10	8C5E	LoadMaskedBattleClassIndexToX	Function	Masks battle class code $6E0F to seven bits and transfers it to X
 10	8EE0	CountMatchingRosterSlotsInSixSlotWindow	Function	Counts class matches across a six-slot roster window or uses the high-class fallback table
 10	8F30	CountRosterMatchesAndClampToClassCap	Function	Counts matches across 24 roster slots and clamps the result to the class-specific cap
@@ -1335,8 +1335,8 @@
 12	AAF0	AdventureLog_LoadSlotIndex	Function	Loads Adventure Log slot index $8A and reports indices at least three
 12	AAF9	AdventureLog_LoadSlotIndexPreservingPointer	Function	Loads Adventure Log slot index while preserving pointer $00-$01
 12	AB10	AdventureLog_WriteIndexedByte	Function	Loads and validates an Adventure Log index below eight before writing its byte
-12	AB1E	AdventureLog_StoreIndexedByteAndTail	Function	Stores A through the indexed record pointer and appends the header-length tail
-12	AB36	AdventureLog_CloneBlockAndMarkSlots	Function	Copies an Adventure Log block, seeds control bytes, and marks its eight records
+12	AB1E	AdventureLog_StoreSlotFinalByteAndChecksum	Function	Stores A in the final byte (offset 751) of slot $8A's 752-byte record and rewrites the slot checksum
+12	AB36	AdventureLog_CreateSlotAndInitializeCharacters	Function	Zero-fills slot $8A's 752-byte record, stores UI results at record offsets 349 and 751, loads the slot into the working save, sets byte 5 of all nine character records to 1, and writes the working save back to the slot
 12	ABC1	AdventureLog_CopyBlockBetweenPointers	Function	Copies a variable-length Adventure Log block between pointers and restores slot-list state
 12	ABE9	AdventureLog_UpdateBlockConditionally	Function	Loads the slot index and dispatches special Adventure Log block updates
 12	AC01	AdventureLog_StoreSlotFlag10	Function	Writes flag $10 into Adventure Log slot state $6BD9,X
@@ -1347,15 +1347,15 @@
 12	AC53	AdventureLog_RestoreSaveSlotIndexAndCopyPayload	Function	Restores the Adventure Log index, rebuilds the source pointer, and completes payload copying
 12	AC73	AdventureLog_CheckHeaderMirror	Function	Checks the Adventure Log signature against both mirrors and refreshes them on a match
 12	AC8C	AdventureLog_CopyHeaderMirror	Function	Copies the Adventure Log signature into mirror buffers $6BBF and $6BCC
-12	AC9B	AdventureLog_BuildWorkspacePointerFromIndex	Function	Builds the Adventure Log workspace pointer from index $8A and initializes copy state
-12	ACBD	AdventureLog_ClassifyHeaderLengthMatch	Function	Classifies the working record by comparing its pointer with the sentinel block
-12	ACDF	AdventureLog_WriteHeaderLengthPair	Function	Writes Adventure Log header length bytes $12-$13 through the current record pointer
+12	AC9B	AdventureLog_ComputeSlotChecksum	Function	Computes the CRC-16 of slot $8A's 750-byte payload in $12/$13: seed $3A3A, then one $C8AD update (polynomial $1021) per byte from record offset 2
+12	ACBD	AdventureLog_ValidateSlotChecksum	Function	Returns A=$01 when record bytes 0-4 are all $4B (erased slot); otherwise recomputes the payload checksum and returns A=$00 when the high byte of computed minus stored is zero, else A=$80
+12	ACDF	AdventureLog_WriteSlotChecksum	Function	Recomputes slot $8A's payload checksum and stores $12/$13 little-endian in record bytes 0-1
 12	ACF1	AdventureLog_CheckBodySentinel	Function	Checks whether the five-byte Adventure Log body still contains sentinel $4B
 12	AD03	AdventureLog_AdvancePointer	Function	Advances the Adventure Log source pointer and decrements its remaining length
 12	AD15	AdventureLog_LoadBasePointer	Function	Loads the primary Adventure Log record base into pointer $00-$01
 12	AD1A	AdventureLog_LoadIndexedBasePointer	Function	Loads the alternate Adventure Log base and applies the scaled Adventure Log index and offset
-12	AD34	AdventureLog_LoadAuxiliaryRecordPointer	Function	Loads the auxiliary Adventure Log record pointer into $02-$03
-12	AD3F	AdventureLog_LoadPrimaryRecordPointer	Function	Loads the primary Adventure Log record pointer into $02-$03
+12	AD34	AdventureLog_LoadPayloadByteCount	Function	Loads the 750-byte payload length from $AD7E/$AD7F into countdown word $02/$03
+12	AD3F	AdventureLog_LoadRecordByteCount	Function	Loads the 752-byte record length from $AD80/$AD81 into countdown word $02/$03
 12	AD4A	AdventureLog_ClearWorkBuffer	Function	Clears Adventure Log work buffer $0480-$04EF and seeds its descending pattern
 12	AD8C	ApplyChapterPartyFlagsAndGoldPenalty	Function	Initializes chapter-specific party record bits and applies the chapter-dependent total-gold reduction
 12	AE05	LoadPartyCharacterIdForOrdinalLookup	Function	Loads the indexed character ID and enters the shared active-party ordinal search
@@ -4493,7 +4493,7 @@
 1F	C851	DividePointerWord	Function	Divides the little-endian zero-page word selected by X by A, leaving the quotient in place and remainder in A
 1F	C888	ReadByteAndAdvancePointer	Function	Reads one byte through the indexed zero-page pointer selected by X and advances that pointer
 1F	C891	NextRandomByte	Function	Advances the 16-bit random state twice and returns a mixed random byte
-1F	C8AD	AdvanceRandomStateByte	Function	Advances the 16-bit LFSR state in $12-$13 by eight bits
+1F	C8AD	AdvanceRandomStateByte	Function	Folds byte $16 into the 16-bit state $12-$13 with eight CRC-16 steps (polynomial $1021); shared by NextRandomByte and the Adventure Log slot checksum
 1F	C8CC	WaitForFreshButtonPress	Function	Waits for controller release and then for a fresh button press, with a bounded initial-release delay
 1F	C8EC	ReadControllers	Function	Polls both NES controllers into ButtonsPressed and the adjacent second-controller byte
 1F	C8F3	ReadController	Function	Polls the controller selected by X into its eight-bit button state

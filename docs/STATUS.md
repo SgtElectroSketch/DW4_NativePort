@@ -1,6 +1,6 @@
 # Project Status
 
-Last verified: 2026-09-29
+Last verified: 2026-10-01
 
 This document is the authoritative human-readable status snapshot. Generated totals come from `../analysis/`; completion policy is enforced by `../verify-completion.cmd`.
 
@@ -30,8 +30,9 @@ handler at `$16:$AAEF` from a stale variable-record boundary.
 
 The completion gate (`verify-completion.cmd`) passes end to end: 0 current analyzer warnings; 215 warning
 identities ledgered, including all 143 original warnings; 2,141 pointers typed; 2,036/2,036 executable targets
-decoded; 38/38 indirect jumps audited; 4,562 routine interfaces; 4,562 semantic contracts; 26 asset slices; 17 save
-fields; 9 runtime paths; exact ROM match.
+decoded; 38/38 indirect jumps audited; 4,562 routine interfaces; 4,562 semantic contracts; 26 asset slices; 22 save
+fields; 9 runtime paths; exact ROM match. Since 2026-10-01 the gate also runs the 23 `Dw4Tool self-test` probes,
+the routine-contract synchronizer in check mode, and seven save-verifier regression cases.
 
 The 2026-09-28 routine-name audit checked all 2,354 interfaces in banks `$00-$15` against their generated ASM
 bodies and interface evidence. A follow-up control-flow pass added absolute JMP trampolines and bounded tail-call
@@ -87,10 +88,12 @@ eighteen action IDs versus seventeen real handlers, leaving action ID `$60` with
 The final one-issue audit correction identifies `$1E:$9E7A` as `FindHeroPartyOrdinalOrFallback`, called only by
 chapter startup, and limits `$1E:$8FA5` to its verified scene-transition caller.
 
-The contract-completion pass now covers all 4,562 verified routine interfaces. It preserves 32 specialized,
-hand-authored contracts and derives 4,530 evidence-bounded contracts from the reviewed all-body label notes plus
-conservative decoded register, memory-write, call, and entry evidence. `../scripts/sync_routine_contracts.py`
-reproduces the inventory; extraction rejects missing, stale, duplicate, or label-mismatched contracts.
+The contract-completion pass now covers all 4,562 verified routine interfaces. It preserves 41 specialized,
+hand-authored contracts and derives 4,521 evidence-bounded contracts from the reviewed all-body label notes plus
+conservative decoded register, entry-flag, memory-write, call, BRK-service, and entry evidence.
+`../scripts/sync_routine_contracts.py` reproduces the inventory; extraction rejects missing, stale, duplicate, or
+label-mismatched contracts and validates the instruction citations of the hand-authored ones, and the gate fails
+when a derived contract differs from the regenerated interface inventory.
 
 The 2026-09-28 naming pass completed banks `$16-$1F`. Every bank now has zero generated routine-entry names in
 both generated assembly and the routine-interface inventory.
@@ -155,13 +158,32 @@ have no routine interfaces and report `n/a`.
   any analyzer warning, or overlap a verified content range are rejected and listed in `analysis/code-report.txt`.
 - A BRK that selects a bank without a verified `$8000` service directory, or a JSR/JMP into `$0800-$5FFF`, stops
   its path as invalid code.
-- `config/code-data-overlaps.tsv` must exactly equal the final code/content intersection. This preserves the 522
+- `config/code-data-overlaps.tsv` must exactly equal the final code/content intersection. This preserves the 518
   reviewed dual-use bytes while rejecting any undeclared overlap, regardless of seed source.
 - Warning ledger (`config/analyzer-warning-ledger.tsv`): current warnings must match exactly, and each resolved
   warning's disposition is re-checked. `config/analyzer-warning-manifest.tsv` protects the full ledger and original
   inventory, including reason text and post-original identities, against unreviewed edits or deletion.
-- Evidence citations: every `MNEMONIC operand at $ADDR` cited by a content-range or entry-table reason must be
-  decoded code at that address.
+- Evidence citations: in content-range, index-bound, entry-table, save-field, and hand-authored routine-contract
+  evidence, every 6502 mnemonic must lie inside a citation `MNEMONIC operand at $ADDR` (or a slash-joined group
+  over a window) that parses and names decoded code at that place. A mnemonic with a mistyped operand, a missing
+  or overlong address, a broken group, lowercase spelling, or no place at all fails extraction. Indirect operands
+  and BRK services (`BRK $SS,$LL at $ADDR`, checked against the operand bytes) are part of the grammar. Prose that
+  describes code without naming an instruction is not checked, and other files (the inline-operand ABI, code
+  seeds and exclusions, the warning ledger, label notes, derived contracts) are outside this check.
+- Seed-order independence: extraction re-analyzes with the evidence seeds reversed and requires identical
+  instructions, inline operands, labels, and warnings. Supplementary Ghidra blocks keep their order because each
+  is accepted or rolled back against the blocks before it. Only the reversed order is tried, not every
+  permutation.
+- `Dw4Tool self-test` assembles 23 synthetic probes and runs the production analyzer, interface, entry-flag, and
+  citation code against them, so a traversal or validation regression fails the gate even when ROM-derived counts
+  are unchanged.
+- Adventure Log integrity: `scripts/verify-save-ram.ps1` reads the record lengths, slot base and count, seed,
+  polynomial, and signature location and length from the ROM bytes the save code loads, pins the checksum-step,
+  validator, and signature-loop instruction bytes, and ties the slot and signature ledger fields to them. Every
+  archived battery save must be 8,192 bytes, pass the game's signature test, and store exactly the recomputed
+  checksum in each occupied slot; a malformed save fails rather than counting as absent. The archives are
+  local-only; when none are present the report states that this corroboration was skipped.
+  `scripts/test-save-ram-verifier.ps1` runs seven synthetic cases the verifier must accept or reject.
 - Index bounds (`config/index-bounds.tsv`): 169 rows each cap one decoded absolute-indexed consumer to a cited
   index range. Extraction rejects a bound that any source-attributed runtime read or recorded index-register
   observation contradicts, and every byte a bound can reach must be typed.
@@ -208,12 +230,195 @@ Semantic assembly is done only when all of these conditions hold:
 
 - Zero unclassified byte ranges. **Done.**
 - Zero generated routine-entry names. **Done.**
-- Complete reviewed routine contracts. **Done.**
+- Complete routine contracts. **Inventory done: all 4,562 interfaces have a contract synchronized with the
+  generated interface inventory. Semantic review open: the label notes that supply each derived contract's
+  behavior were written against bodies that stopped at BRK services and cross-bank tail jumps, and they have not
+  been re-reviewed for the 1,331 interfaces those corrections widened.**
 - Structured lossless encoders for all five asset classes. **Open: 0/5.**
-- Fully proven save/load and validation behavior. **Open beyond the currently observed direct-SRAM paths.**
+- Fully proven save/load and validation behavior. **Open: the Adventure Log slot layout, checksum, validator, and
+  signature test are recovered and verified; the working-save bytes outside the 22 ledgered fields and the rest of
+  the load path are not.**
 - Deterministic end-to-end runtime scenarios for all nine domains. **Open; current trace assertions pass but are
   evidence checks rather than complete scenarios.**
 - Continued exact-ROM reproduction. **Mandatory gate; currently passing.**
+
+## Review Findings (2026-09-30) And Corrections (2026-10-01)
+
+The 2026-09-30 review recorded nine findings (3 High, 5 Medium, 1 Low) against earlier naming, contract, and
+save-integrity claims. A second review on 2026-10-01 found seven defects in the first round of corrections; they
+are listed under "Second Review" below and folded into the finding they belong to. The corrections withdraw
+claims rather than add coverage: the byte, routine, and contract totals are unchanged, 1,331 of 4,562 routine
+interfaces gained register accesses, writes, or calls they had been missing, and the "no checksum" save claim is
+retracted. One finding, DW4-R10, is open.
+
+### DW4-R01 (High, corrected): Gold is a 24-bit field
+
+[config/save-ram.tsv](../config/save-ram.tsv#L4) now declares `SaveTotalGold` as `$6157-$6159`, 24-bit
+little-endian. Its evidence cites the instructions and extraction validates them:
+`LDA $6157 / LDA $6158 / LDA $6159` at [bank $10:$8699-$86A3](../src/banks/bank_10.asm#L1020) against the
+`$01869F` (99,999) cap, and `LSR $6159 / ROR $6158 / ROR $6157` at
+[bank $12:$ADD5-$ADDB](../src/banks/bank_12.asm#L6472). A schema built from the old ledger would have truncated
+gold above 65,535.
+
+### DW4-R02 (High, corrected): Adventure Log checksum recovered, "no checksum" claim withdrawn
+
+[$12:$AC9B/$ACBD/$ACDF](../config/labels.tsv#L1350) are now `AdventureLog_ComputeSlotChecksum`,
+`AdventureLog_ValidateSlotChecksum`, and `AdventureLog_WriteSlotChecksum`, with hand-authored
+[contracts](../config/routine-contracts.tsv#L1428). The saved game is not the working save at `$6001-$62EE`: three
+752-byte records start at `$62EF`, each a checksum word followed by a 750-byte copy of the working save. The
+checksum is a CRC-16 (polynomial `$1021`, most significant bit first, seed `$3A3A`) over record offsets 2-751; its
+per-byte step is [$1F:$C8AD](../src/banks/bank_1F.asm#L1341), the routine that also advances the random state in
+`$12/$13`, so computing a checksum overwrites that state.
+
+The validator at [$ACBD](../src/banks/bank_12.asm#L6291) is not a full-word equality test. It returns `A=$01` for
+an erased record (bytes 0-4 all `$4B`); otherwise it subtracts the stored word from the recomputed one, discards
+the low-byte result, and branches on the high-byte result alone, so it accepts (`A=$00`) whenever computed minus
+stored lies in `$0000-$00FF` and rejects (`A=$80`) otherwise.
+
+[The verifier](../scripts/verify-save-ram.ps1) no longer asserts that no checksum exists. It derives the layout
+and parameters from ROM bytes and applies the game's own tests to the archived battery saves: 28/28 pass the signature test and 28/28
+occupied slots store exactly the computed checksum. A save of the wrong size or one the game would reject fails
+the verifier. [The report](../analysis/save-ram-report.md#L5) documents the layout,
+checksum, validator, signature test, and remaining limits, and the ledger gained the three slot records and both
+signature copies (17 to 22 fields).
+
+### DW4-R03 (High, corrected): Routine bodies continue past BRK services and tail jumps
+
+[CodeAnalyzer.ResumeAddress](../tools/Dw4Tool/CodeAnalyzer.cs#L461) is the single definition of where a body
+continues after a BRK service or inline-operand JSR; the analyzer and the interface walk both use it. The body
+has one [stated definition](../tools/Dw4Tool/Program.cs#L2472): every decoded instruction reachable from the
+entry through fallthrough, branches, and direct JMPs into any bank the target resolves to. JSR callees and BRK
+services are not entered; they are listed. A jump that cannot be resolved ends its path and is listed.
+
+Against the previous inventory, 1,331 interfaces changed (1,008 gained direct writes, 897 gained calls); none
+lost an entry. [EnterMapAtWorldCoordinates](../config/routine-contracts.tsv#L48) now lists its post-BRK writes
+and calls, and `UploadResolvedTileGraphics` now includes the `$1F` write of its tail jump to `$0F:$C62D`. Two
+new columns, `BrkServices` (1,520 routines) and `UnfollowedJumps` (120 routines), record what the body leaves
+to code outside it. Contracts were regenerated (2,508 rows changed), and the gate fails when a derived contract
+differs from the regenerated interface inventory.
+
+### DW4-R04 (Medium, corrected): Analyzer reachability does not depend on seed order
+
+Each followed instruction records the facts it was walked under (known zero flag, preceding branch) per walk
+window, and is [walked again](../tools/Dw4Tool/CodeAnalyzer.cs#L267) unless an unbounded walk, or a walk of the
+same window, already covered the arriving facts. A branch edge pruned for one entry is therefore still explored
+for another, a bounded window no longer hides code from a later unbounded entry, and two windows that start at
+one address are both walked. Four self-test probes cover the two reported flag cases and the two window cases in
+both seed orders.
+
+Effect on the current ROM, now quantified: no instruction, inline operand, or warning changed. One branch target
+gained a label: [$17:$A119](../src/banks/bank_17.asm#L3992), the target of `BEQ` at `$A115` after `LDY $C000`.
+ROM `$C000` is `$FF`, so the first walk pruned that edge; a Ghidra block entry at `$A115` arrives without that
+fact. Extraction [re-analyzes with the evidence seeds reversed](../tools/Dw4Tool/CodeAnalyzer.cs#L505) and
+requires identical results.
+
+### DW4-R05 (Medium, corrected): Entry flags are traced, with the unknowns stated
+
+`analysis/routine-interfaces.tsv` has two columns produced by
+[EntryFlagAnalyzer](../tools/Dw4Tool/EntryFlagAnalyzer.cs):
+
+- `EntryFlagReads`: flags (C, N, V, Z) that some decoded path consumes before any decoded instruction writes
+  them. Direct JSR and JMP targets are followed through per-entry summaries, PHP/PLP are matched on a modeled
+  stack, a call that never returns to its call site ends the path, and a branch on a flag the path itself set
+  to a constant follows only its feasible edge. Eighty-four routines read an entry flag (47 carry, 29 zero,
+  7 negative, 1 carry and negative).
+- `EntryFlagsUnresolved`: flags that still held the caller's value where a path left what the trace can follow:
+  a BRK service (carry and overflow only, since the dispatcher rewrites N and Z before the service runs), an
+  unresolved jump or call, undecoded code, a return that does not go back to the call site, or a stack-page or
+  stack-pointer access while saved flags are on the modeled stack. 1,877 routines have at least one.
+
+For the remaining 2,627 routines every flag is written on every decoded path before any decoded read. Neither
+column is a bound on the true dependencies: a listed read may lie on a path the program never takes (only
+constant-flag branches are pruned), and nothing behind an unresolved flag is examined. The earlier statement
+that the read set was a lower bound is withdrawn.
+
+[$10:$8C58](../src/banks/bank_10.asm#L2032) is renamed `ReturnCarryWhenIncomingZeroFlagClear`; its hand-authored
+[contract](../config/routine-contracts.tsv#L579) records that it never reads A and cites the `AND` that
+immediately precedes each of its seven calls.
+
+### DW4-R06 (Medium, corrected): Every mnemonic in evidence text must be a checked citation
+
+[CitationValidator](../tools/Dw4Tool/CitationValidator.cs) no longer tries to recognize malformed citations. It
+enforces one invariant: in validated evidence, every 6502 mnemonic must lie inside a citation that parses and
+names decoded code at the cited place. The grammar covers indirect operands and BRK services with their operand
+bytes. A probe checks that `LDA ($09), Y at $8FD5`, a malformed group prefix, an overlong or short address, a
+lowercase citation, and a mnemonic with no place are all rejected.
+
+Bringing the evidence under the invariant rewrote 227 rows: 196 content ranges, 23 index bounds, and 8 entry
+tables, plus three hand-authored contracts and two save fields. Instructions named without an address were given
+one, checked against the assembly; arithmetic and nouns that used a mnemonic word were reworded. Two rows were
+factually wrong and are corrected: `$12:$8741` is guarded by `CMP #$04` at `$86EE`, not `CPX #$04`, and
+`$1C:$BDD3` holds the operands of BRK service `$62,$23` at `$BDD2`, not `$62,$33`.
+
+The invariant covers the five validated sources only. Evidence text in the inline-operand ABI, code seeds and
+exclusions, the warning ledger, label notes, and derived contracts is not parsed, and prose that describes code
+without naming an instruction is never a citation.
+
+### DW4-R07 (Medium, corrected): Adventure Log byte counts are named as counts
+
+[$12:$AD34/$AD3F](../config/labels.tsv#L1357) are now `AdventureLog_LoadPayloadByteCount` (750, `$AD7E`) and
+`AdventureLog_LoadRecordByteCount` (752, `$AD80`). Their contracts state that `$02/$03` is the countdown word
+`$AD03` decrements to zero, while the record address stays in `$00/$01`.
+
+### DW4-R08 (Medium, corrected): Adventure Log creation initializes nine character records
+
+[$12:$AB36](../config/labels.tsv#L1339) is now `AdventureLog_CreateSlotAndInitializeCharacters`.
+[The loop at $ABA4](../src/banks/bank_12.asm#L6120) runs X from 8 through 0, nine iterations, setting byte 5 of
+each of the nine 30-byte character records (`$6001-$610E`) to 1. Those are character records in the working save, not
+Adventure Log slots; the contract separates the two.
+
+### DW4-R09 (Low, corrected): Overlap total
+
+`Enforced Evidence Checks` now gives 518 reviewed dual-use bytes, matching `config/code-data-overlaps.tsv`, the
+classification report, and `Current Metrics`.
+
+### DW4-R10 (Medium, open): Tail-jump discovery still stops at BRK
+
+Found while correcting DW4-R03. [BuildRoutineTargets](../tools/Dw4Tool/Program.cs#L2442) discovers tail-jump
+routine entries with a walk that still ends at a BRK. Continuing past returning services surfaces 81 further jump
+targets, which would raise the inventory from 4,562 to 4,643. They are not all routine entries: 26 are reached
+only by a backward jump from inside the routine that contains them (for example the search loop head at
+`$08:$AEE8`) and 6 only by a forward jump inside the same routine. The walk was left unchanged rather than adding 81 entries that would need names the
+evidence does not yet support. **Follow-up:** make the tail-jump rule distinguish a loop or join from a tail call,
+then review and name the entries that remain.
+
+### Second Review (2026-10-01)
+
+A review of the first corrections found seven defects. Each was reproduced with a failing probe or case before
+it was fixed.
+
+- **Entry-flag "lower bound" claim (Medium).** False: the trace followed infeasible branches, trusted a restored
+  flag after a stack-page write, and continued after calls that never return. The claim is withdrawn, the three
+  defects are fixed, and unknowns are now reported per routine (DW4-R05).
+- **Unchecked citations (Medium).** The shape heuristic missed several malformed forms. It is replaced by the
+  mnemonic invariant (DW4-R06).
+- **Signature integrity described, not enforced (Medium).** The save verifier accepted a save with both signature
+  copies corrupted and a shortened signature ledger span. It now applies the game's signature test and ties both
+  ledger fields to the compared bytes (DW4-R02).
+- **Malformed saves treated as absent (Medium).** An 8,191-byte save produced a passing "no saves" result. Any
+  present save of the wrong size now fails.
+- **Bounded-window ordering (Medium).** Two windows from one address, or a window and an unbounded entry, decoded
+  different code depending on order. Followed-instruction facts are now kept per window (DW4-R04).
+- **Cross-bank tail jumps dropped (Medium).** Interfaces followed same-bank jumps only. The body definition now
+  includes direct jumps into the fixed bank and lists what it does not enter (DW4-R03).
+- **Completion wording (Low).** "Complete reviewed routine contracts: Done" overstated the review. The
+  completion definition now separates the synchronized inventory from the open semantic re-review.
+
+### Correction Verification And Limits
+
+- Full `verify-completion.cmd` run on 2026-10-01: passed, exact ROM match, 0 analyzer warnings, 23/23 self-test
+  probes, 7/7 save-verifier cases, contracts synchronized (41 hand-authored, 4,521 derived), 22 save fields with
+  complete write evidence.
+- `scripts/check_audit6_labels.py` passes: 4,914 labels, no duplicate or legacy names, contracts match labels.
+- Not done: no new manual audit of all 4,562 routine bodies. The 1,331 widened interfaces changed derived
+  register, write, call, and service lists only; their label notes were not re-reviewed against the longer bodies.
+- Entry-flag columns are not bounds (see DW4-R05). The citation invariant covers five evidence sources (see
+  DW4-R06). Seed-order independence is checked for the reversed order only.
+- The interface lists BRK services by operand bytes; it does not resolve them to service routines or include
+  their effects.
+- The entry-table reason for `$12:$AACA` still calls the five Adventure Log operation handlers a "battle setup
+  handler table"; that text was noticed and left unchanged.
+- No fresh emulator traces were recorded. The save corroboration uses the existing local save archives.
 
 ## Remaining Work
 
@@ -225,7 +430,8 @@ Semantic assembly is done only when all of these conditions hold:
 5. Build one vertical slice in the chosen engine, then add editing tools and intentional gameplay changes.
 
 Entry-point recovery, byte classification, warning disposition, routine naming, routine contracts, and the exact-ROM
-gate are maintenance checks now; rerun them whenever new evidence changes code or data boundaries.
+gate are maintenance checks now; rerun them whenever new evidence changes code or data boundaries. The one open
+review finding is DW4-R10 (tail-jump discovery), which may add routine entries that then need names and contracts.
 
 ## Control-Flow Conflicts
 

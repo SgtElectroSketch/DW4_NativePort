@@ -27,7 +27,9 @@ PRG bytes.
 
 ## Semantic Status
 
-Routine naming and semantic-contract coverage are complete for all 4,562 verified interfaces. The authoritative
+All 4,562 verified interfaces have a curated name and a contract synchronized with the generated interface
+inventory. The semantic notes behind the derived contracts have not been re-reviewed for the 1,331 interfaces
+that the 2026-10-01 body-traversal corrections widened. The authoritative
 per-bank completion table, audit history, evidence checks, and remaining work are maintained in
 [docs/STATUS.md](docs/STATUS.md); detailed audit findings remain in `analysis/audits/`.
 

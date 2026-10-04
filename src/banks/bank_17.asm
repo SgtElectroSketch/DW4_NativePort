@@ -3989,8 +3989,9 @@ MapSystem_Branch_A10E:
         lda     $2C,x                           ; A10E B5 2C                    .,
         beq     MapSystem_Branch_A127           ; A110 F0 15                    ..
         ldy     DebugFeatureFlags               ; A112 AC 00 C0                 ...
-        beq     $A119                           ; A115 F0 02                    ..
+        beq     MapSystem_Branch_A119           ; A115 F0 02                    ..
         ora     #$08                            ; A117 09 08                    ..
+MapSystem_Branch_A119:
         tay                                     ; A119 A8                       .
         lda     Bank17_MapTimingTable,y         ; A11A B9 4A A1                 .J.
         bne     MapSystem_Branch_A122           ; A11D D0 03                    ..

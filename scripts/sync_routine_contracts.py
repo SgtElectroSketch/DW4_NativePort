@@ -70,14 +70,27 @@ def derive_contract(
     location = f"${interface['Bank'].upper()}:${interface['Address'].upper()}"
     register_inputs = interface["RegisterInputs"]
     register_outputs = interface["RegisterOutputs"]
+    entry_flags = interface["EntryFlagReads"]
+    unresolved_flags = interface["EntryFlagsUnresolved"]
     memory_writes = interface["DirectMemoryWrites"]
     calls = interface["Calls"]
+    brk_services = interface["BrkServices"]
+    unfollowed_jumps = interface["UnfollowedJumps"]
 
     inputs = (
         f"Conservative decoded-body register reads: {format_registers(register_inputs)}"
         if register_inputs
         else "No register reads identified by static interface analysis"
     )
+    # Neither list is a bound: a read may lie on a path the program never takes, and a flag that is
+    # unresolved still held the caller's value where the trace could not follow control.
+    if entry_flags:
+        inputs += f"; entry flags read on a decoded path before any decoded write: {entry_flags}"
+    if unresolved_flags:
+        inputs += (
+            "; entry flags not traced beyond a BRK service or unresolved transfer: "
+            f"{unresolved_flags}"
+        )
     clobbers = (
         f"{format_registers(register_outputs)} (conservative static analysis)"
         if register_outputs
@@ -88,8 +101,12 @@ def derive_contract(
         effects.append(f"Direct memory writes: {memory_writes}")
     if calls:
         effects.append(f"Direct calls: {calls}")
+    if brk_services:
+        effects.append(f"BRK services (operand bytes): {brk_services}")
+    if unfollowed_jumps:
+        effects.append(f"Jumps not followed: {unfollowed_jumps}")
     if not effects:
-        effects.append("No direct memory writes or calls identified by static interface analysis")
+        effects.append("No direct memory writes, calls, or BRK services identified by static interface analysis")
 
     return {
         "bank": interface["Bank"].upper(),

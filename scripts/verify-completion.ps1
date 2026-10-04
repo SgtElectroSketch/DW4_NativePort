@@ -11,14 +11,28 @@ try {
     & dotnet run --project tools\Dw4Tool\Dw4Tool.csproj --configuration Release -- asset-verify $Rom $projectRoot
     if ($LASTEXITCODE -ne 0) { throw "asset round-trip verification failed" }
 
+    # Synthetic probes for analyzer traversal, routine interfaces, and citation validation. They fail on a
+    # logic regression that ROM-derived counts alone would not show.
+    & dotnet run --project tools\Dw4Tool\Dw4Tool.csproj --configuration Release -- self-test $projectRoot
+    if ($LASTEXITCODE -ne 0) { throw "Dw4Tool self-test failed" }
+
     & cmd.exe /d /c .\extract.cmd $Rom
     if ($LASTEXITCODE -ne 0) { throw "exact-source extraction failed" }
+
+    # Derived contracts must equal what the freshly generated interface inventory produces.
+    if ($null -eq (Get-Command python -ErrorAction SilentlyContinue)) { throw "python is required to check routine-contract synchronization" }
+    & python scripts\sync_routine_contracts.py
+    if ($LASTEXITCODE -ne 0) { throw "routine contracts are not synchronized with analysis\routine-interfaces.tsv; run scripts\sync_routine_contracts.py --write" }
 
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\verify-runtime-paths.ps1
     if ($LASTEXITCODE -ne 0) { throw "runtime path verification failed" }
 
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\verify-save-ram.ps1
     if ($LASTEXITCODE -ne 0) { throw "save RAM verification failed" }
+
+    # Synthetic saves the game would reject, or that are malformed, must fail the verifier above.
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\test-save-ram-verifier.ps1
+    if ($LASTEXITCODE -ne 0) { throw "save RAM verifier regression cases failed" }
 
     $oldLabels = @(Get-ChildItem src\banks\bank_*.asm | Select-String -Pattern '^Bank[0-9A-F]{2}_Code_[0-9A-F]{4}:')
     if ($oldLabels.Count -ne 0) { throw "$($oldLabels.Count) legacy generated code labels remain" }

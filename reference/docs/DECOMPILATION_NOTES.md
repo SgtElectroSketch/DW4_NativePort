@@ -895,7 +895,7 @@ These intervals remain unclassified at table/routine granularity. Their containi
 - at this milestone, 3,992 pointer-, call-, or seed-proven routine starts had generated register/memory/call interfaces and 35 high-confidence routines had extraction-validated semantic contracts; current totals are maintained in [STATUS.md](STATUS.md)
 - 26 manifest slices cover text, maps, graphics, palettes, and audio and round-trip to the exact ROM hash
 - FCEUX evidence passes 12 assertions across startup, banking, menus, maps, battle, text, save/load initialization, audio, and graphics
-- SRAM tracing observes complete writes for 15 named fields and the contiguous `$6001-$62EE` initialization span; recovered code uses battery SRAM directly and contains no verified separate serializer or checksum pass
+- SRAM tracing observes complete writes for 15 named fields and the contiguous `$6001-$62EE` initialization span; recovered code uses battery SRAM directly and contains no verified separate serializer or checksum pass (withdrawn 2026-10-01: bank `$12` keeps three checksummed Adventure Log records at `$62EF`, each a CRC-16 word plus a 750-byte copy of the working save; see `analysis/save-ram-report.md`)
 - the final 524,304-byte ROM matches SHA-256 `373BE958CB33651FE599A6B282D2A232EB3B99559C258B2C70B53DF0FA31E34A`
 
 The current totals, per-bank backlog, and semantic completion definition now live only in [STATUS.md](STATUS.md). The gate deliberately does not inflate semantic coverage by guessing.

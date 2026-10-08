@@ -1,18 +1,23 @@
 # Name<TAB>Start<TAB>EndExclusive<TAB>Initialization<TAB>Persistence<TAB>Evidence
 SaveCharacterRecords	6001	610F	Initialized per chapter and updated by party progression	Direct battery SRAM	Nine 30-byte character records addressed by pointers $6001-$60F1 in bank $10 table $9F83; inventory occupies fields $13-$1A
 SaveGuestCharacterRecords	610F	6157	Cleared by InitializeChapterSaveState and populated for guest characters	Direct battery SRAM	Twelve 6-byte guest-character records addressed by pointers $610F-$6151 in bank $10 table $9F83
-SaveTotalGold	6157	6159	Set by chapter initialization	Direct battery SRAM	Read/write arithmetic uses the little-endian pair $6157-$6158
+SaveTotalGold	6157	615A	Set by chapter initialization	Direct battery SRAM	24-bit little-endian value: LDA $6157 / LDA $6158 / LDA $6159 at bank $10:$8699-$86A3 load it against the cap $01869F (99,999) from LDA #$9F / LDA #$86 / LDA #$01 at bank $10:$868D-$8695, and LSR $6159 / ROR $6158 / ROR $6157 at bank $12:$ADD5-$ADDB halve all three bytes
 SaveCurrentChapterMinus1	615A	615B	Caller-selected before chapter initialization	Direct battery SRAM	Chapter branches across banks $08/$10-$12/$18/$19
 SaveHeroGender	615C	615D	Initialized from chapter record	Direct battery SRAM	Read by map and battle presentation code
 SaveHeroName	615D	6165	Initialized from chapter record	Direct battery SRAM	Eight-byte copy loop reads offsets $00-$07
 SavePartyCharacters	616A	616E	Initialized from chapter-specific ROM tables	Direct battery SRAM	Four party identifiers written by bank $12:$8ECA
-SaveGameStateFlags	618E	618F	Cleared then conditionally set by chapter initialization	Direct battery SRAM	BIT-tested by bank $10 and written by bank $12
+SaveGameStateFlags	618E	618F	Cleared then conditionally set by chapter initialization	Direct battery SRAM	Tested by BIT $618E at bank $10:$824A and BIT $618E at bank $10:$8261, and written by bank $12
 SavePlayerWorldPosition	6197	6199	Updated by map position logic	Direct battery SRAM	Compared with PlayerWorldX/PlayerWorldY by fixed-bank map logic
 SaveVaultGoldThousands	625B	625D	Vault deposit and withdrawal updates	Direct battery SRAM	Bank $15:$B4B9-$B4ED stores deposited gold in 1000-gold increments
 SaveStoryFlags	625D	625E	Game-event updates	Direct battery SRAM	Bit-field operations in bank $1E
-SaveVehicleFlags	628E	628F	Game-event updates	Direct battery SRAM	BIT-tested by bank $1E movement logic
+SaveVehicleFlags	628E	628F	Game-event updates	Direct battery SRAM	Tested by BIT $628E at bank $1E:$AB0D and BIT $628E at bank $1E:$AB3D in bank $1E movement logic
 SaveJoinedCharacterFlags	6292	6293	Party-event updates	Direct battery SRAM	Read by bank $19 map-music selection
 SaveTransformState	6296	6298	Map-event updates	Direct battery SRAM	Read/write use of step and shape bytes in banks $1D/$1E
 SaveSmallMedals	62A2	62A3	Item-event updates	Direct battery SRAM	Named field used by item and event services
 SaveCasinoCoins	62AD	62B0	Casino updates	Direct battery SRAM	Three-byte carry-propagating arithmetic in bank $17
 SaveTimeOfDay	62ED	62EE	Frame/world-time updates	Direct battery SRAM	Incremented and wrapped by fixed-bank time logic
+AdventureLogSlot1	62EF	65DF	Zero-filled when a log is created (bank $12:$AB36), rewritten from the working save by service $12:$AC53, and filled with $4B when erased ($12:$AC10)	Battery SRAM record guarded by a CRC-16	752-byte record: CRC-16 word in bytes 0-1, then a 750-byte copy of the working save $6001-$62EE; the address is $62EF + slot * 752 from LDA $AD80 / LDA $AD81 / LDA $8A / JSR $C827 / LDA $AD88 / LDY $AD89 / JMP $C81D at bank $12:$AD1C-$AD31
+AdventureLogSlot2	65DF	68CF	Zero-filled when a log is created (bank $12:$AB36), rewritten from the working save by service $12:$AC53, and filled with $4B when erased ($12:$AC10)	Battery SRAM record guarded by a CRC-16	752-byte record: CRC-16 word in bytes 0-1, then a 750-byte copy of the working save $6001-$62EE; the address is $62EF + slot * 752 from LDA $AD80 / LDA $AD81 / LDA $8A / JSR $C827 / LDA $AD88 / LDY $AD89 / JMP $C81D at bank $12:$AD1C-$AD31
+AdventureLogSlot3	68CF	6BBF	Zero-filled when a log is created (bank $12:$AB36), rewritten from the working save by service $12:$AC53, and filled with $4B when erased ($12:$AC10)	Battery SRAM record guarded by a CRC-16	752-byte record: CRC-16 word in bytes 0-1, then a 750-byte copy of the working save $6001-$62EE; the address is $62EF + slot * 752 from LDA $AD80 / LDA $AD81 / LDA $8A / JSR $C827 / LDA $AD88 / LDY $AD89 / JMP $C81D at bank $12:$AD1C-$AD31
+AdventureLogSignature	6BBF	6BCC	Copied from ROM $12:$AD71-$AD7D	Direct battery SRAM	Thirteen bytes: LDA $AD71,X / CMP $6BBF,X at bank $12:$AC75-$AC78 tests them and LDA $AD71,X / STA $6BBF,X at bank $12:$AC8E-$AC91 rewrites them
+AdventureLogSignatureCopy	6BCC	6BD9	Copied from ROM $12:$AD71-$AD7D	Direct battery SRAM	Thirteen bytes: CMP $6BCC,X at bank $12:$AC7D accepts a byte the first copy fails, and STA $6BCC,X at bank $12:$AC94 rewrites them

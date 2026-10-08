@@ -6,6 +6,7 @@
 - Git with submodule support
 - Visual Studio with MSBuild and the Desktop development with C++ workload
 - .NET SDK 10 or newer
+- Python 3.10 or newer, used by the routine-contract synchronizer that the completion gate runs in check mode
 - A legally obtained reference ROM for extraction and verification
 
 Initialize third-party source after cloning:
@@ -70,7 +71,7 @@ set DW4_ROM=<path-to-reference-rom>
 verify-completion.cmd
 ```
 
-The gate performs asset round-trip verification and exact-source extraction. Extraction enforces the inline-operand ABI against causal runtime resumes when available, the warning ledger and tamper-evident manifest, the exact intentional code/data-overlap ledger, block-atomic Ghidra rejection, and evidence citations. The gate then runs pointer and indirect-jump audits and runtime/save evidence checks, and finishes with a clean build and exact ROM verification.
+The gate performs asset round-trip verification, runs the `Dw4Tool self-test` probes (synthetic code and evidence text that exercise the analyzer, routine-interface, entry-flag, and citation logic), and then performs exact-source extraction. Extraction enforces the inline-operand ABI against causal runtime resumes when available, the warning ledger and tamper-evident manifest, the exact intentional code/data-overlap ledger, block-atomic Ghidra rejection, and evidence citations. Extraction also re-analyzes with the evidence seeds reversed and requires an identical decode. The gate then checks that derived routine contracts match the regenerated interface inventory, runs pointer and indirect-jump audits and runtime/save evidence checks, and finishes with a clean build and exact ROM verification. The save check recomputes the Adventure Log checksum for any battery saves archived under `States\`; those archives are local-only, and the report says so when none are present; a save that is present but malformed, or that the game itself would reject, fails the gate. `scripts\test-save-ram-verifier.ps1` then runs synthetic saves the verifier must accept or reject.
 
 ## Optional Static Analysis
 

@@ -13,6 +13,30 @@ tracked extractor, which writes ignored PNG, WAV, VGM, JSON, and TSV files for t
 - Git with submodule support
 - Python 3 with `numpy` for asset extraction
 
+## Reference Status
+
+- Reassemblable assembly: 100% (verified: build reproduces SHA-256 `373BE958CB33651FE599A6B282D2A232EB3B99559C258B2C70B53DF0FA31E34A`)
+- Detailed semantic classification: 100% (524,288 / 524,288) - Done
+- Meaningfully named routines: 4,562/4,562 (100%)
+- Semantic contracts: 4,562/4,562 (100%)
+- Pointer recovery, indirect-jump audit, and analyzer-warning disposition: 100%
+- Current analyzer warnings and control-flow conflicts: 0
+
+These three figures describe the completed classification partition rather than separate progress targets:
+163,493 instruction bytes + 361,313 content-range bytes - 518 bytes in both inventories = 524,288 classified
+PRG bytes.
+
+## Semantic Status
+
+All 4,562 verified interfaces have a curated name and a contract synchronized with the generated interface
+inventory. The semantic notes behind the derived contracts have not been re-reviewed for the 1,331 interfaces
+that the 2026-10-01 body-traversal corrections widened. The authoritative
+per-bank completion table, audit history, evidence checks, and remaining work are maintained in
+[reference/docs/STATUS.md](reference/docs/STATUS.md); detailed audit findings remain in
+`reference/analysis/audits/`.
+
+## Quick Start
+
 Initialize the moved reference submodule after cloning:
 
 ```bat

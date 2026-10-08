@@ -5930,7 +5930,7 @@ AdventureLog_BuildThreeSlotList:
 AdventureLog_Branch_AA64:
         lda     #$D6                            ; AA64 A9 D6                    ..
         jsr     AdventureLog_StoreSlotByte      ; AA66 20 7F AA                  ..
-        jsr     AdventureLog_ClassifyHeaderLengthMatch; AA69 20 BD AC            ..
+        jsr     AdventureLog_ValidateSlotChecksum; AA69 20 BD AC                 ..
         beq     AdventureLog_Branch_AA7A        ; AA6C F0 0C                    ..
         pha                                     ; AA6E 48                       H
         lda     #$00                            ; AA6F A9 00                    ..
@@ -6050,7 +6050,7 @@ AdventureLog_WriteIndexedByte:
 ; ----------------------------------------------------------------------------
         cmp     #$08                            ; AB1A C9 08                    ..
         bcs     AdventureLog_Branch_AB35        ; AB1C B0 17                    ..
-AdventureLog_StoreIndexedByteAndTail:
+AdventureLog_StoreSlotFinalByteAndChecksum:
         pha                                     ; AB1E 48                       H
         jsr     AdventureLog_LoadBasePointer    ; AB1F 20 15 AD                  ..
         lda     $AD82                           ; AB22 AD 82 AD                 ...
@@ -6060,14 +6060,14 @@ AdventureLog_StoreIndexedByteAndTail:
         pla                                     ; AB2D 68                       h
         ldy     #$00                            ; AB2E A0 00                    ..
         sta     ($00),y                       ; AB30 91 00                    ..
-        jsr     AdventureLog_WriteHeaderLengthPair; AB32 20 DF AC                ..
+        jsr     AdventureLog_WriteSlotChecksum  ; AB32 20 DF AC                  ..
 AdventureLog_Branch_AB35:
         rts                                     ; AB35 60                       `
 ; ----------------------------------------------------------------------------
-AdventureLog_CloneBlockAndMarkSlots:
+AdventureLog_CreateSlotAndInitializeCharacters:
         jsr     AdventureLog_LoadSlotIndexPreservingPointer; AB36 20 F9 AA       ..
         bcs     AdventureLog_Branch_AB35        ; AB39 B0 FA                    ..
-        jsr     AdventureLog_LoadPrimaryRecordPointer; AB3B 20 3F AD             ?.
+        jsr     AdventureLog_LoadRecordByteCount; AB3B 20 3F AD                  ?.
         jsr     AdventureLog_LoadBasePointer    ; AB3E 20 15 AD                  ..
 AdventureLog_Branch_AB41:
         ldy     #$00                            ; AB41 A0 00                    ..
@@ -6110,8 +6110,8 @@ AdventureLog_Branch_AB41:
 ; ----------------------------------------------------------------------------
         cmp     #$08                            ; AB8D C9 08                    ..
         bcs     AdventureLog_Branch_ABBE        ; AB8F B0 2D                    .-
-        jsr     AdventureLog_StoreIndexedByteAndTail; AB91 20 1E AB              ..
-        jsr     AdventureLog_WriteHeaderLengthPair; AB94 20 DF AC                ..
+        jsr     AdventureLog_StoreSlotFinalByteAndChecksum; AB91 20 1E AB        ..
+        jsr     AdventureLog_WriteSlotChecksum  ; AB94 20 DF AC                  ..
         lda     $8A                             ; AB97 A5 8A                    ..
         sta     $6BDC                           ; AB99 8D DC 6B                 ..k
         jsr     AdventureLog_CopyPayloadToWorkBuffer; AB9C 20 22 AC              ".
@@ -6146,7 +6146,7 @@ AdventureLog_CopyBlockBetweenPointers:
         jsr     AdventureLog_LoadSlotIndexPreservingPointer; ABC9 20 F9 AA       ..
         bcs     AdventureLog_Branch_ABE8        ; ABCC B0 1A                    ..
         jsr     AdventureLog_LoadIndexedBasePointer; ABCE 20 1A AD               ..
-        jsr     AdventureLog_LoadPrimaryRecordPointer; ABD1 20 3F AD             ?.
+        jsr     AdventureLog_LoadRecordByteCount; ABD1 20 3F AD                  ?.
 AdventureLog_Branch_ABD4:
         ldy     #$00                            ; ABD4 A0 00                    ..
         lda     ($00),y                       ; ABD6 B1 00                    ..
@@ -6190,7 +6190,7 @@ AdventureLog_Branch_AC0B:
         sta     $6BD9,x                         ; AC0D 9D D9 6B                 ..k
 AdventureLog_Branch_AC10:
         jsr     AdventureLog_LoadBasePointer    ; AC10 20 15 AD                  ..
-        jsr     AdventureLog_LoadPrimaryRecordPointer; AC13 20 3F AD             ?.
+        jsr     AdventureLog_LoadRecordByteCount; AC13 20 3F AD                  ?.
 AdventureLog_Branch_AC16:
         ldy     #$00                            ; AC16 A0 00                    ..
         lda     #$4B                            ; AC18 A9 4B                    .K
@@ -6205,12 +6205,12 @@ AdventureLog_CopyPayloadToWorkBuffer:
         sta     $04                             ; AC28 85 04                    ..
         lda     $AD8B                           ; AC2A AD 8B AD                 ...
         sta     $05                             ; AC2D 85 05                    ..
-        jsr     AdventureLog_LoadAuxiliaryRecordPointer; AC2F 20 34 AD           4.
+        jsr     AdventureLog_LoadPayloadByteCount; AC2F 20 34 AD                 4.
         ldx     #$00                            ; AC32 A2 00                    ..
         lda     #$02                            ; AC34 A9 02                    ..
         jsr     AddByteToPointer                ; AC36 20 13 C8                  ..
 AdventureLog_CopyPayloadChunk:
-        jsr     AdventureLog_LoadAuxiliaryRecordPointer; AC39 20 34 AD           4.
+        jsr     AdventureLog_LoadPayloadByteCount; AC39 20 34 AD                 4.
 AdventureLog_Branch_AC3C:
         ldy     #$00                            ; AC3C A0 00                    ..
         lda     ($00),y                       ; AC3E B1 00                    ..
@@ -6237,7 +6237,7 @@ AdventureLog_RestoreSaveSlotIndexAndCopyPayload:
         lda     #$02                            ; AC67 A9 02                    ..
         jsr     AddByteToPointer                ; AC69 20 13 C8                  ..
         jsr     AdventureLog_CopyPayloadChunk   ; AC6C 20 39 AC                  9.
-        jsr     AdventureLog_WriteHeaderLengthPair; AC6F 20 DF AC                ..
+        jsr     AdventureLog_WriteSlotChecksum  ; AC6F 20 DF AC                  ..
         rts                                     ; AC72 60                       `
 ; ----------------------------------------------------------------------------
 AdventureLog_CheckHeaderMirror:
@@ -6269,12 +6269,12 @@ AdventureLog_Branch_AC8E:
         bpl     AdventureLog_Branch_AC8E        ; AC98 10 F4                    ..
         rts                                     ; AC9A 60                       `
 ; ----------------------------------------------------------------------------
-AdventureLog_BuildWorkspacePointerFromIndex:
+AdventureLog_ComputeSlotChecksum:
         jsr     AdventureLog_LoadBasePointer    ; AC9B 20 15 AD                  ..
         lda     #$02                            ; AC9E A9 02                    ..
         ldx     #$00                            ; ACA0 A2 00                    ..
         jsr     AddByteToPointer                ; ACA2 20 13 C8                  ..
-        jsr     AdventureLog_LoadAuxiliaryRecordPointer; ACA5 20 34 AD           4.
+        jsr     AdventureLog_LoadPayloadByteCount; ACA5 20 34 AD                 4.
         lda     #$3A                            ; ACA8 A9 3A                    .:
         sta     $12                             ; ACAA 85 12                    ..
         sta     $13                             ; ACAC 85 13                    ..
@@ -6287,10 +6287,10 @@ AdventureLog_Branch_ACAE:
         bne     AdventureLog_Branch_ACAE        ; ACBA D0 F2                    ..
         rts                                     ; ACBC 60                       `
 ; ----------------------------------------------------------------------------
-AdventureLog_ClassifyHeaderLengthMatch:
+AdventureLog_ValidateSlotChecksum:
         jsr     AdventureLog_CheckBodySentinel  ; ACBD 20 F1 AC                  ..
         bcc     AdventureLog_Branch_ACD9        ; ACC0 90 17                    ..
-        jsr     AdventureLog_BuildWorkspacePointerFromIndex; ACC2 20 9B AC       ..
+        jsr     AdventureLog_ComputeSlotChecksum; ACC2 20 9B AC                  ..
         jsr     AdventureLog_LoadBasePointer    ; ACC5 20 15 AD                  ..
         sec                                     ; ACC8 38                       8
         ldy     #$00                            ; ACC9 A0 00                    ..
@@ -6311,8 +6311,8 @@ AdventureLog_Branch_ACDC:
         lda     #$80                            ; ACDC A9 80                    ..
         rts                                     ; ACDE 60                       `
 ; ----------------------------------------------------------------------------
-AdventureLog_WriteHeaderLengthPair:
-        jsr     AdventureLog_BuildWorkspacePointerFromIndex; ACDF 20 9B AC       ..
+AdventureLog_WriteSlotChecksum:
+        jsr     AdventureLog_ComputeSlotChecksum; ACDF 20 9B AC                  ..
         jsr     AdventureLog_LoadBasePointer    ; ACE2 20 15 AD                  ..
         ldy     #$00                            ; ACE5 A0 00                    ..
         lda     $12                             ; ACE7 A5 12                    ..
@@ -6367,14 +6367,14 @@ AdventureLog_ComputeIndexedRecordPointer:
         ldy     $AD89                           ; AD2E AC 89 AD                 ...
         jmp     AddWordToPointer                ; AD31 4C 1D C8                 L..
 ; ----------------------------------------------------------------------------
-AdventureLog_LoadAuxiliaryRecordPointer:
+AdventureLog_LoadPayloadByteCount:
         lda     $AD7E                           ; AD34 AD 7E AD                 .~.
         sta     $02                           ; AD37 85 02                    ..
         lda     $AD7F                           ; AD39 AD 7F AD                 ...
         sta     $03                             ; AD3C 85 03                    ..
         rts                                     ; AD3E 60                       `
 ; ----------------------------------------------------------------------------
-AdventureLog_LoadPrimaryRecordPointer:
+AdventureLog_LoadRecordByteCount:
         lda     $AD80                           ; AD3F AD 80 AD                 ...
         sta     $02                           ; AD42 85 02                    ..
         lda     $AD81                           ; AD44 AD 81 AD                 ...

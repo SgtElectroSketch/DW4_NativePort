@@ -29,6 +29,7 @@ internal static class Program
                 "asset-export" => AssetTool.Export(args),
                 "asset-import" => AssetTool.Import(args),
                 "asset-verify" => AssetTool.Verify(args),
+                "self-test" => SelfTest.Run(args),
                 _ => Usage()
             };
         }
@@ -48,6 +49,7 @@ internal static class Program
         Console.WriteLine("  Dw4Tool asset-export <rom> <project-root> <output-directory>");
         Console.WriteLine("  Dw4Tool asset-import <base-rom> <project-root> <input-directory> <output-rom>");
         Console.WriteLine("  Dw4Tool asset-verify <rom> <project-root>");
+        Console.WriteLine("  Dw4Tool self-test <project-root>");
         return 2;
     }
 
@@ -158,6 +160,9 @@ internal static class Program
         CodeAnalyzer.ValidateGuardedFlowRecovery(
             rom.AsMemory(HeaderSize), guardedSeeds, baselineAnalyses, analyses);
         Console.WriteLine($"validated {guardedSeeds.Count} guarded flow-recovery seeds");
+        CodeAnalyzer.ValidateSeedOrderIndependence(
+            rom.AsMemory(HeaderSize), codeSeeds, codeExclusions, inlineOperandAbi, declaredData, analyses);
+        Console.WriteLine("validated evidence seed-order independence");
         List<IndexBound> indexBounds = IndexBounds.Load(Path.Combine(projectRoot, "config", "index-bounds.tsv"));
         IndexBounds.Validate(
             indexBounds,
@@ -190,6 +195,15 @@ internal static class Program
                     .Select(line => line.Split('\t'))
                     .Select(columns => (int.Parse(columns[0], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
                         $"entry table ${columns[0]}:${columns[1]}", columns[4]))),
+            rom.AsMemory(HeaderSize),
+            analyses);
+        // Save-field evidence names its bank explicitly, so the owner bank here is only a fallback.
+        CitationValidator.Validate(
+            File.ReadLines(Path.Combine(projectRoot, "config", "save-ram.tsv"))
+                .Where(line => !string.IsNullOrWhiteSpace(line) && !line.StartsWith('#'))
+                .Select(line => line.Split('\t'))
+                .Select(columns => (0x1F, $"save field {columns[0]}", columns[^1])),
+            rom.AsMemory(HeaderSize),
             analyses);
         WarningLedger.Validate(
             Path.Combine(projectRoot, "config", "analyzer-warning-ledger.tsv"),
@@ -213,14 +227,28 @@ internal static class Program
             bankClassifications,
             generatedLabelRanges,
             routineTargets.Keys.ToHashSet());
-        WriteRoutineContractReport(
-            Path.Combine(projectRoot, "analysis", "routine-contracts.md"),
-            LoadRoutineContracts(Path.Combine(projectRoot, "config", "routine-contracts.tsv")),
-            routineTargets,
-            effectiveLabels,
-            analyses);
+        // The interface inventory is written first: contracts are synchronized from it, so it must be
+        // current even when the contract check below rejects a stale contract file.
         WriteRoutineInterfaceReport(
             Path.Combine(projectRoot, "analysis", "routine-interfaces.tsv"),
+            routineTargets,
+            effectiveLabels,
+            rom.AsMemory(HeaderSize),
+            inlineOperandAbi,
+            analyses);
+        List<RoutineContract> routineContracts = LoadRoutineContracts(
+            Path.Combine(projectRoot, "config", "routine-contracts.tsv"));
+        // Hand-authored contracts cite their own instructions; derived ones quote entry-table reasons
+        // that the validator already checked against their owning bank.
+        CitationValidator.Validate(
+            routineContracts
+                .Where(contract => !contract.Evidence.StartsWith("Static interface analysis at ", StringComparison.Ordinal))
+                .Select(contract => (contract.Bank, $"routine contract ${contract.Bank:X2}:${contract.Address:X4}", contract.Evidence)),
+            rom.AsMemory(HeaderSize),
+            analyses);
+        WriteRoutineContractReport(
+            Path.Combine(projectRoot, "analysis", "routine-contracts.md"),
+            routineContracts,
             routineTargets,
             effectiveLabels,
             analyses);
@@ -2117,10 +2145,13 @@ internal static class Program
         string path,
         IReadOnlyDictionary<(int Bank, int Address), SortedSet<string>> routineTargets,
         IReadOnlyDictionary<int, List<BankLabel>> labels,
+        ReadOnlyMemory<byte> prg,
+        InlineOperandAbi abi,
         IReadOnlyDictionary<int, BankAnalysis> analyses)
     {
         StringBuilder report = new();
-        report.AppendLine("Bank\tAddress\tName\tCallingConvention\tRegisterInputs\tRegisterOutputs\tDirectMemoryWrites\tCalls");
+        EntryFlagAnalyzer entryFlags = new(prg, abi, analyses);
+        report.AppendLine("Bank\tAddress\tName\tCallingConvention\tRegisterInputs\tRegisterOutputs\tDirectMemoryWrites\tCalls\tEntryFlagReads\tEntryFlagsUnresolved\tBrkServices\tUnfollowedJumps");
         foreach (((int Bank, int Address) location, SortedSet<string> evidence) in routineTargets
             .OrderBy(item => item.Key.Bank)
             .ThenBy(item => item.Key.Address))
@@ -2128,7 +2159,10 @@ internal static class Program
             RoutineInterface contract = AnalyzeRoutineInterface(
                 location.Bank,
                 location.Address,
-                analyses);
+                prg,
+                abi,
+                analyses,
+                entryFlags);
             string name = labels[location.Bank]
                 .First(label => label.Address == location.Address)
                 .Name;
@@ -2139,7 +2173,11 @@ internal static class Program
                 .Append(string.Join(',', contract.RegisterInputs)).Append('\t')
                 .Append(string.Join(',', contract.RegisterOutputs)).Append('\t')
                 .Append(string.Join(',', contract.DirectMemoryWrites)).Append('\t')
-                .AppendLine(string.Join(',', contract.Calls));
+                .Append(string.Join(',', contract.Calls)).Append('\t')
+                .Append(string.Join(',', contract.EntryFlagReads)).Append('\t')
+                .Append(string.Join(',', contract.EntryFlagsUnresolved)).Append('\t')
+                .Append(string.Join(',', contract.BrkServices)).Append('\t')
+                .AppendLine(string.Join(',', contract.UnfollowedJumps));
         }
         File.WriteAllText(path, report.ToString(), new UTF8Encoding(false));
     }
@@ -2401,6 +2439,10 @@ internal static class Program
                             Add(jumpBank, jumpTarget,
                                 $"Tail jump from ${bank:X2}:${instruction.Address:X4}");
                         }
+                        // This discovery walk deliberately still ends at a BRK. Continuing past
+                        // returning services surfaces 81 further jump targets, 26 of them loop-back
+                        // jumps inside the owning routine, so the tail-jump rule must first tell a
+                        // loop from a tail call (docs/STATUS.md, DW4-R10).
                         if (instruction.Opcode.StopsFlow)
                         {
                             break;
@@ -2427,26 +2469,35 @@ internal static class Program
         }
     }
 
-    private static RoutineInterface AnalyzeRoutineInterface(
+    // A routine body is every decoded instruction reachable from the entry through fallthrough,
+    // branches, and direct JMPs into any bank the target address resolves to, so a tail jump into the
+    // fixed bank contributes its effects. JSR callees and BRK services are not entered; they are listed
+    // as calls and services. A jump whose target cannot be resolved (indirect, or from a fixed bank
+    // into the switchable window) ends its path and is listed as unfollowed.
+    internal static RoutineInterface AnalyzeRoutineInterface(
         int bank,
         int startAddress,
-        IReadOnlyDictionary<int, BankAnalysis> analyses)
+        ReadOnlyMemory<byte> prg,
+        InlineOperandAbi abi,
+        IReadOnlyDictionary<int, BankAnalysis> analyses,
+        EntryFlagAnalyzer? entryFlags = null)
     {
         SortedSet<string> registerInputs = [];
         SortedSet<string> registerOutputs = [];
         SortedSet<string> memoryWrites = [];
         SortedSet<string> calls = [];
-        HashSet<int> visited = [];
-        Queue<int> pending = new();
-        pending.Enqueue(startAddress);
-        BankAnalysis analysis = analyses[bank];
+        SortedSet<string> brkServices = new(StringComparer.Ordinal);
+        SortedSet<string> unfollowedJumps = new(StringComparer.Ordinal);
+        HashSet<(int Bank, int Address)> visited = [];
+        Queue<(int Bank, int Address)> pending = new();
+        pending.Enqueue((bank, startAddress));
 
-        while (pending.TryDequeue(out int pathAddress))
+        while (pending.TryDequeue(out (int Bank, int Address) path))
         {
-            int address = pathAddress;
-            while (analysis.Instructions.TryGetValue(
-                address - CodeAnalyzer.CpuBase(bank),
-                out DecodedInstruction? instruction) && visited.Add(address))
+            (int pathBank, int address) = path;
+            while (analyses[pathBank].Instructions.TryGetValue(
+                address - CodeAnalyzer.CpuBase(pathBank),
+                out DecodedInstruction? instruction) && visited.Add((pathBank, address)))
             {
                 CollectRegisterAccess(instruction, registerInputs, registerOutputs);
                 if (instruction.Opcode.Mnemonic is "sta" or "stx" or "sty" or
@@ -2459,24 +2510,53 @@ internal static class Program
                 {
                     calls.Add($"${callTarget:X4}");
                 }
+                if (instruction.Opcode.Mnemonic == "brk")
+                {
+                    int operandOffset = (pathBank * PrgBankSize) + instruction.Offset + 1;
+                    int operandCount = CodeAnalyzer.InlineOperandCount(prg.Span, instruction, abi);
+                    brkServices.Add(string.Join('/', prg.Span.Slice(operandOffset, operandCount).ToArray()
+                        .Select(value => $"${value:X2}")));
+                }
                 if (instruction.Opcode.IsBranch && instruction.Target is int branchTarget)
                 {
-                    pending.Enqueue(branchTarget);
+                    pending.Enqueue((pathBank, branchTarget));
                 }
-                if (instruction.Opcode.IsJump && instruction.Target is int jumpTarget &&
-                    TargetBank(bank, jumpTarget) == bank)
+                if (instruction.Opcode.IsJump)
                 {
-                    pending.Enqueue(jumpTarget);
+                    if (instruction.Target is int jumpTarget && TargetBank(pathBank, jumpTarget) is int jumpBank)
+                    {
+                        pending.Enqueue((jumpBank, jumpTarget));
+                    }
+                    else
+                    {
+                        int word = instruction.Operand1 | (instruction.Operand2 << 8);
+                        unfollowedJumps.Add(instruction.Opcode.Mode == AddressingMode.Indirect
+                            ? $"(${word:X4})"
+                            : $"${word:X4}");
+                    }
                 }
-                if (instruction.Opcode.StopsFlow)
+
+                // A BRK service or inline-operand call returns past its operands, so the body
+                // continues there exactly as the analyzer decoded it.
+                if (CodeAnalyzer.ResumeAddress(prg.Span, instruction, abi) is not int resume)
                 {
                     break;
                 }
-                address += instruction.Opcode.Size;
+                address = resume;
             }
         }
 
-        return new RoutineInterface(registerInputs, registerOutputs, memoryWrites, calls);
+        entryFlags ??= new EntryFlagAnalyzer(prg, abi, analyses);
+        (IReadOnlySet<string> flagReads, IReadOnlySet<string> flagsUnresolved) = entryFlags.EntryFlags(bank, startAddress);
+        return new RoutineInterface(
+            registerInputs,
+            flagReads,
+            flagsUnresolved,
+            registerOutputs,
+            memoryWrites,
+            calls,
+            brkServices,
+            unfollowedJumps);
     }
 
     private static void CollectRegisterAccess(
@@ -2587,10 +2667,15 @@ internal static class Program
         string Clobbers,
         string SideEffects,
         string Evidence);
-    private sealed record RoutineInterface(
-        IReadOnlySet<string> RegisterInputs,
-        IReadOnlySet<string> RegisterOutputs,
-        IReadOnlySet<string> DirectMemoryWrites,
-        IReadOnlySet<string> Calls);
     private sealed record RomFacts(int Mapper, int PrgSize, int ChrSize, bool Battery, bool VerticalMirroring);
 }
+
+internal sealed record RoutineInterface(
+    IReadOnlySet<string> RegisterInputs,
+    IReadOnlySet<string> EntryFlagReads,
+    IReadOnlySet<string> EntryFlagsUnresolved,
+    IReadOnlySet<string> RegisterOutputs,
+    IReadOnlySet<string> DirectMemoryWrites,
+    IReadOnlySet<string> Calls,
+    IReadOnlySet<string> BrkServices,
+    IReadOnlySet<string> UnfollowedJumps);

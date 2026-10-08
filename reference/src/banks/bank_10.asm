@@ -1842,7 +1842,7 @@ BattlePartyServices_Branch_8B3D:
         pha                                     ; 8B46 48                       H
         jsr     BuildLowBitMaskFromX            ; 8B47 20 90 84                  ..
         and     $6E0F                           ; 8B4A 2D 0F 6E                 -.n
-        jsr     ReturnCarryIfAccumulatorNonzero ; 8B4D 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 8B4D 20 58 8C              X.
         pla                                     ; 8B50 68                       h
         tax                                     ; 8B51 AA                       .
         pla                                     ; 8B52 68                       h
@@ -1899,7 +1899,7 @@ TestBattleClassFlag40:
         jsr     LoadMaskedBattleClassIndexToX   ; 8B7D 20 5E 8C                  ^.
         lda     $8D63,x                         ; 8B80 BD 63 8D                 .c.
         and     #$40                            ; 8B83 29 40                    )@
-        jsr     ReturnCarryIfAccumulatorNonzero ; 8B85 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 8B85 20 58 8C              X.
         pla                                     ; 8B88 68                       h
         tax                                     ; 8B89 AA                       .
         pla                                     ; 8B8A 68                       h
@@ -1913,7 +1913,7 @@ TestBattleClassFlag80:
         jsr     LoadMaskedBattleClassIndexToX   ; 8B92 20 5E 8C                  ^.
         lda     $8D63,x                         ; 8B95 BD 63 8D                 .c.
         and     #$80                            ; 8B98 29 80                    ).
-        jsr     ReturnCarryIfAccumulatorNonzero ; 8B9A 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 8B9A 20 58 8C              X.
         pla                                     ; 8B9D 68                       h
         tax                                     ; 8B9E AA                       .
         pla                                     ; 8B9F 68                       h
@@ -1927,7 +1927,7 @@ TestAlternateBattleClassFlag80:
         jsr     LoadMaskedBattleClassIndexToX   ; 8BA7 20 5E 8C                  ^.
         lda     $8DE2,x                         ; 8BAA BD E2 8D                 ...
         and     #$80                            ; 8BAD 29 80                    ).
-        jsr     ReturnCarryIfAccumulatorNonzero ; 8BAF 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 8BAF 20 58 8C              X.
         pla                                     ; 8BB2 68                       h
         tax                                     ; 8BB3 AA                       .
         pla                                     ; 8BB4 68                       h
@@ -2018,7 +2018,7 @@ BattlePartyServices_Branch_8C2C:
         jsr     LoadMaskedBattleClassIndexToX   ; 8C42 20 5E 8C                  ^.
         pla                                     ; 8C45 68                       h
         and     $8CE4,x                         ; 8C46 3D E4 8C                 =..
-        jsr     ReturnCarryIfAccumulatorNonzero ; 8C49 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 8C49 20 58 8C              X.
         pla                                     ; 8C4C 68                       h
         sta     $01                             ; 8C4D 85 01                    ..
         pla                                     ; 8C4F 68                       h
@@ -2028,7 +2028,7 @@ BattlePartyServices_Branch_8C2C:
         lda     $6E0F                           ; 8C54 AD 0F 6E                 ..n
         rts                                     ; 8C57 60                       `
 ; ----------------------------------------------------------------------------
-ReturnCarryIfAccumulatorNonzero:
+ReturnCarryWhenIncomingZeroFlagClear:
         beq     BattlePartyServices_Branch_8C5C ; 8C58 F0 02                    ..
         sec                                     ; 8C5A 38                       8
         rts                                     ; 8C5B 60                       `
@@ -3531,7 +3531,7 @@ TestPartyRecordBitBySelector:
         clc                                     ; 97FB 18                       .
         ldy     #$00                            ; 97FC A0 00                    ..
         and     ($79),y                         ; 97FE 31 79                    1y
-        jsr     ReturnCarryIfAccumulatorNonzero ; 9800 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 9800 20 58 8C              X.
         pla                                     ; 9803 68                       h
         rts                                     ; 9804 60                       `
 ; ----------------------------------------------------------------------------
@@ -3556,7 +3556,7 @@ BattlePartyServices_Branch_9805:
         tay                                     ; 9820 A8                       .
         lda     ($79),y                         ; 9821 B1 79                    .y
         and     $00                           ; 9823 25 00                    %.
-        jsr     ReturnCarryIfAccumulatorNonzero ; 9825 20 58 8C                  X.
+        jsr     ReturnCarryWhenIncomingZeroFlagClear; 9825 20 58 8C              X.
         lda     $00                           ; 9828 A5 00                    ..
         rts                                     ; 982A 60                       `
 ; ----------------------------------------------------------------------------

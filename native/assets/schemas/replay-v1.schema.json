@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dw4:native:foundation-replay:1",
+  "type": "object",
+  "required": ["schema_version", "rules_version", "rng_compatibility", "asset_schema_version", "initial", "frames", "checkpoints"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "rules_version": { "type": "string", "const": "foundation-1" },
+    "rng_compatibility": { "type": "string", "minLength": 1 },
+    "asset_schema_version": { "type": "integer", "const": 1 },
+    "initial": { "$ref": "#/$defs/snapshot" },
+    "frames": {
+      "type": "array",
+      "maxItems": 360000,
+      "items": {
+        "type": "object",
+        "required": ["input", "random_draws"],
+        "properties": {
+          "input": { "$ref": "#/$defs/byte" },
+          "random_draws": { "type": "integer", "minimum": 0, "maximum": 1000000 }
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "array",
+      "maxItems": 360000,
+      "items": {
+        "type": "object",
+        "required": ["frame_index", "snapshot"],
+        "properties": {
+          "frame_index": { "type": "integer", "minimum": 0, "maximum": 359999 },
+          "snapshot": { "$ref": "#/$defs/snapshot" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "byte": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "uint64": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "snapshot": {
+      "type": "object",
+      "required": ["frame", "input", "pressed", "released", "random_engine", "random_draw_counter"],
+      "properties": {
+        "frame": { "$ref": "#/$defs/uint64" },
+        "input": { "$ref": "#/$defs/byte" },
+        "pressed": { "$ref": "#/$defs/byte" },
+        "released": { "$ref": "#/$defs/byte" },
+        "random_engine": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "random_draw_counter": { "$ref": "#/$defs/uint64" }
+      }
+    }
+  },
+  "$comment": "Native loading also checks exact RNG/toolchain compatibility, standard engine decoding, valid button edges, strictly increasing in-range checkpoints, aggregate draw limits, integer-token types, and counter overflow. Files are limited to 64 MiB. This is a foundation replay, not a full gameplay-state or reference parity format."
+}

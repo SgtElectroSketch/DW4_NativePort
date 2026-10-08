@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dw4:native-assets:catalogs:1",
+  "$ref": "#/$defs/header",
+  "$comment": "Select the catalog-specific definition listed in README.md. Native validation additionally rejects floating-point integer encodings, duplicate dialogue IDs, and IDs inconsistent with group * 32 + index. Other domain record fields are not yet fully modeled.",
+  "$defs": {
+    "header": {
+      "type": "object",
+      "required": ["schema_version"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "dialogue_message": {
+      "type": "object",
+      "required": ["id", "group", "index", "symbols"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "group": { "type": "integer", "minimum": 0, "maximum": 2047 },
+        "index": { "type": "integer", "minimum": 0, "maximum": 31 },
+        "symbols": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        }
+      }
+    },
+    "dialogue": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["messages"],
+          "properties": {
+            "messages": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/dialogue_message" }
+            }
+          }
+        }
+      ]
+    },
+    "maps": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["locations"],
+          "properties": { "locations": { "$ref": "#/$defs/records" } }
+        }
+      ]
+    },
+    "sprites": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["sets"],
+          "properties": { "sets": { "$ref": "#/$defs/records" } }
+        }
+      ]
+    },
+    "monsters": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["monsters"],
+          "properties": { "monsters": { "$ref": "#/$defs/records" } }
+        }
+      ]
+    },
+    "graphics": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["chr", "fonts"],
+          "properties": {
+            "chr": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["image", "format", "tiles"],
+                "properties": {
+                  "image": { "type": "string", "minLength": 1 },
+                  "format": { "enum": ["1bpp", "2bpp"] },
+                  "tiles": { "type": "integer", "minimum": 1, "maximum": 65535 }
+                }
+              }
+            },
+            "fonts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["image", "glyphs"],
+                "properties": {
+                  "image": { "type": "string", "minLength": 1 },
+                  "glyphs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["tile", "text_code_meaning"],
+                      "properties": {
+                        "tile": { "type": "integer", "minimum": 0, "maximum": 65535 },
+                        "text_code_meaning": { "type": "string", "minLength": 1 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "screens": {
+      "description": "Captured screens are comparison evidence, not native gameplay backgrounds.",
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["scenes"],
+          "properties": { "scenes": { "$ref": "#/$defs/records" } }
+        }
+      ]
+    },
+    "audio": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "required": ["music", "sfx"],
+          "properties": {
+            "music": { "$ref": "#/$defs/records" },
+            "sfx": { "$ref": "#/$defs/records" }
+          }
+        }
+      ]
+    }
+  }
+}

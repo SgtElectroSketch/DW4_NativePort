@@ -1,5 +1,11 @@
 @echo off
 setlocal
+set "CONFIGURATION=%~1"
+if "%CONFIGURATION%"=="" set "CONFIGURATION=Release"
+if /i not "%CONFIGURATION%"=="Debug" if /i not "%CONFIGURATION%"=="Release" (
+    echo Usage: build-native.cmd [Debug^|Release] 1>&2
+    exit /b 1
+)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\port\check-copyright-boundary.ps1" -RepositoryRoot "%~dp0."
 if errorlevel 1 exit /b %ERRORLEVEL%
 
@@ -13,5 +19,5 @@ if not defined MSBUILD (
     exit /b 1
 )
 
-"%MSBUILD%" "%~dp0DragonWarrior4.Native.sln" /m /restore /p:Configuration=Release /p:Platform=x64
+"%MSBUILD%" "%~dp0DragonWarrior4.Native.sln" /m /restore /p:Configuration=%CONFIGURATION% /p:Platform=x64
 exit /b %ERRORLEVEL%

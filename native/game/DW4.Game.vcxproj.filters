@@ -18,9 +18,93 @@
     <ClCompile Include="src\Game.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Random.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Replay.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Render.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Title.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MenuInput.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdventureLog.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\World.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Dialogue.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Progression.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Field.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Interaction.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Inventory.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Battle.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Encounters.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\dw4\game\Game.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Random.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Replay.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Render.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Title.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\MenuInput.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\AdventureLog.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\World.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Dialogue.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Progression.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Field.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Interaction.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Inventory.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Battle.hpp">
+      <Filter>include\dw4\game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\game\Encounters.hpp">
       <Filter>include\dw4\game</Filter>
     </ClInclude>
   </ItemGroup>

@@ -41,9 +41,37 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\dw4\game\Game.hpp" />
+    <ClInclude Include="include\dw4\game\Random.hpp" />
+    <ClInclude Include="include\dw4\game\Replay.hpp" />
+    <ClInclude Include="include\dw4\game\Render.hpp" />
+    <ClInclude Include="include\dw4\game\Title.hpp" />
+    <ClInclude Include="include\dw4\game\MenuInput.hpp" />
+    <ClInclude Include="include\dw4\game\AdventureLog.hpp" />
+    <ClInclude Include="include\dw4\game\World.hpp" />
+    <ClInclude Include="include\dw4\game\Dialogue.hpp" />
+    <ClInclude Include="include\dw4\game\Progression.hpp" />
+    <ClInclude Include="include\dw4\game\Field.hpp" />
+    <ClInclude Include="include\dw4\game\Interaction.hpp" />
+    <ClInclude Include="include\dw4\game\Inventory.hpp" />
+    <ClInclude Include="include\dw4\game\Battle.hpp" />
+    <ClInclude Include="include\dw4\game\Encounters.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Random.cpp" />
+    <ClCompile Include="src\Replay.cpp" />
+    <ClCompile Include="src\Render.cpp" />
+    <ClCompile Include="src\Title.cpp" />
+    <ClCompile Include="src\MenuInput.cpp" />
+    <ClCompile Include="src\AdventureLog.cpp" />
+    <ClCompile Include="src\World.cpp" />
+    <ClCompile Include="src\Dialogue.cpp" />
+    <ClCompile Include="src\Progression.cpp" />
+    <ClCompile Include="src\Field.cpp" />
+    <ClCompile Include="src\Interaction.cpp" />
+    <ClCompile Include="src\Inventory.cpp" />
+    <ClCompile Include="src\Battle.cpp" />
+    <ClCompile Include="src\Encounters.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\DW4.Common.targets" />

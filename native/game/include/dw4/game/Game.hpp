@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dw4/game/Random.hpp>
+
 #include <cstdint>
 
 namespace dw4::game {
@@ -23,16 +25,26 @@ struct InputFrame final {
     std::uint8_t buttons{};
 
     [[nodiscard]] bool is_pressed(Button button) const noexcept;
+    [[nodiscard]] constexpr bool operator==(const InputFrame&) const noexcept = default;
 };
 
 struct FrameState final {
     std::uint64_t number{};
     InputFrame input{};
+    InputFrame pressed{};
+    InputFrame released{};
+    RandomState random{};
+
+    [[nodiscard]] bool operator==(const FrameState&) const noexcept = default;
 };
 
 class Game final {
 public:
+    Game() noexcept = default;
+    explicit Game(FrameState initial) noexcept;
+
     void tick(InputFrame input) noexcept;
+    [[nodiscard]] std::uint8_t next_random_byte() noexcept;
     [[nodiscard]] const FrameState& frame() const noexcept;
 
 private:

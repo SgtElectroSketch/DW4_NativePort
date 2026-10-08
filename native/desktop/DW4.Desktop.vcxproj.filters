@@ -12,5 +12,55 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\GraphicsAssets.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TitleAudio.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdventureStore.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdventureView.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FieldView.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameplaySession.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\GraphicsAssets.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsRenderer.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TitleAudio.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AdventureStore.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AdventureView.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FieldView.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameplaySession.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

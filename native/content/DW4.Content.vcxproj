@@ -41,9 +41,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\dw4\content\AssetCatalog.hpp" />
+    <ClInclude Include="include\dw4\content\Graphics.hpp" />
+    <ClInclude Include="include\dw4\content\TitleData.hpp" />
+    <ClInclude Include="include\dw4\content\AdventureSave.hpp" />
+    <ClInclude Include="include\dw4\content\FieldData.hpp" />
+    <ClInclude Include="include\dw4\content\ReplayFile.hpp" />
+    <ClInclude Include="src\JsonValidation.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AssetCatalog.cpp" />
+    <ClCompile Include="src\ReplayFile.cpp" />
+    <ClCompile Include="src\TitleData.cpp" />
+    <ClCompile Include="src\AdventureSave.cpp" />
+    <ClCompile Include="src\FieldData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\DW4.Common.targets" />

@@ -18,10 +18,40 @@
     <ClCompile Include="src\AssetCatalog.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ReplayFile.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TitleData.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdventureSave.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FieldData.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\dw4\content\AssetCatalog.hpp">
       <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\content\Graphics.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\content\TitleData.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\content\AdventureSave.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\content\FieldData.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dw4\content\ReplayFile.hpp">
+      <Filter>include\dw4\content</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JsonValidation.hpp">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

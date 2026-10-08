@@ -38,17 +38,23 @@
   <Import Project="..\native\DW4.Common.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\native\game\include;$(ProjectDir)..\native\content\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\native\game\include;$(ProjectDir)..\native\content\include;$(ProjectDir)..\native\desktop\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Catch2Main.lib;Catch2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)'=='Debug'">Catch2Maind.lib;Catch2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)'=='Release'">Catch2Main.lib;Catch2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\integration\AssetCatalogTests.cpp" />
     <ClCompile Include="src\unit\GameTests.cpp" />
+    <ClCompile Include="..\native\desktop\src\GraphicsAssets.cpp" />
+    <ClCompile Include="..\native\desktop\src\GraphicsRenderer.cpp" />
+    <ClCompile Include="..\native\desktop\src\Input.cpp" />
+    <ClCompile Include="..\native\desktop\src\AdventureStore.cpp" />
+    <ClCompile Include="..\native\desktop\src\AdventureView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\native\content\DW4.Content.vcxproj">

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dw4:native:adventure-state:2",
+  "type": "object",
+  "required": ["magic", "version", "rng_compatibility", "name", "gender", "message_speed", "chapter", "frame", "random_engine", "random_draws", "world", "checksum"],
+  "properties": {
+    "magic": { "const": "DW4_NATIVE_ADVENTURE" },
+    "version": { "const": 2 },
+    "rng_compatibility": { "type": "string", "minLength": 1 },
+    "name": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": "integer", "minimum": 0, "maximum": 140 } },
+    "gender": { "type": "integer", "minimum": 0, "maximum": 1 },
+    "message_speed": { "type": "integer", "minimum": 0, "maximum": 7 },
+    "chapter": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "frame": { "type": "integer", "minimum": 0 },
+    "random_draws": { "type": "integer", "minimum": 0 },
+    "random_engine": { "type": "string", "minLength": 1, "maxLength": 16384 },
+    "checksum": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "world": {
+      "type": "object",
+      "required": ["map", "submap", "x", "y", "facing", "characters", "party", "gold", "bank_gold", "casino_coins", "bag", "story_flags", "actors", "event_step", "event_delay", "phase"],
+      "properties": {
+        "map": { "type": "integer", "anyOf": [{ "minimum": 0, "maximum": 72 }, { "const": 255 }] },
+        "submap": { "type": "integer", "minimum": 0, "maximum": 31 },
+        "x": { "type": "integer", "minimum": 0, "maximum": 1023 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 1023 },
+        "facing": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "characters": { "type": "array", "minItems": 9, "maxItems": 9, "items": { "$ref": "#/$defs/character" } },
+        "party": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "integer", "anyOf": [{ "minimum": 0, "maximum": 8 }, { "const": 255 }] } },
+        "gold": { "$ref": "#/$defs/currency" },
+        "bank_gold": { "$ref": "#/$defs/currency" },
+        "casino_coins": { "$ref": "#/$defs/currency" },
+        "bag": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/item" } },
+        "story_flags": { "type": "array", "maxItems": 1024, "uniqueItems": true, "items": { "type": "integer", "minimum": 0, "maximum": 65535 } },
+        "actors": { "type": "array", "maxItems": 128, "items": { "type": "object", "required": ["id", "sprite", "x", "y", "target_x", "target_y", "facing", "step", "instruction", "delay", "active"] } },
+        "event_step": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "event_delay": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "phase": { "type": "integer", "minimum": 0, "maximum": 3 }
+      }
+    }
+  },
+  "$defs": {
+    "currency": { "type": "integer", "minimum": 0, "maximum": 9999999 },
+    "item": { "type": "object", "required": ["id", "equipped"], "properties": { "id": { "type": "integer", "minimum": 0, "maximum": 255 }, "equipped": { "type": "integer", "minimum": 0, "maximum": 5 } } },
+    "character": {
+      "type": "object",
+      "required": ["id", "level", "hp", "maximum_hp", "mp", "maximum_mp", "strength", "agility", "vitality", "intelligence", "luck", "experience", "conditions", "inventory", "spells"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "level": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "hp": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "maximum_hp": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "mp": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "maximum_mp": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "strength": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "agility": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "vitality": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "intelligence": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "luck": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "experience": { "$ref": "#/$defs/currency" },
+        "conditions": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "inventory": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/item" } },
+        "spells": { "type": "array", "maxItems": 64, "items": { "type": "integer", "minimum": 0, "maximum": 255 } }
+      }
+    }
+  },
+  "$comment": "Native validates character identity order, HP/MP relationships, nonempty unique party, unique actors and exact RNG compatibility in addition to this schema. Version-1 profiles remain readable and initialize a fresh Chapter 1 session. Battle saves retain a pre-battle checkpoint; an active battle is not serialized as a completed field state."
+}
